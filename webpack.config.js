@@ -7,7 +7,14 @@ if (!Encore.isRuntimeEnvironmentConfigured()) {
     Encore.configureRuntimeEnvironment(process.env.NODE_ENV || 'dev');
 }
 
-// Enable TypeScript support
+// Configure Babel
+Encore.configureBabelPresetEnv((config) => {
+    config.useBuiltIns = 'usage';
+    config.corejs = 3;
+    config.targets = '> 0.25%, not dead';
+});
+
+// Enable TypeScript support with Babel
 Encore.enableTypeScriptLoader()
     .enableReactPreset()
     .addAliases({
