@@ -71,43 +71,38 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
                 </div>
               </div>
 
-              {/* {ticket.description && (
-                <div className="mt-1 w-64 text-sm text-gray-600 bg-white rounded-md">
-                  {ticket.description}
-                </div>
-              )} */}
+              <div className="flex justify-end">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-7 w-7 transition-opacity"
+                    >
+                      <MoreHorizontal className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onEdit(ticket)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      <span>Edit</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-red-600" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>Delete</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-7 w-7 transition-opacity"
-                >
-                  <MoreHorizontal className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(ticket)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  <span>Edit</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-red-600" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowDeleteDialog(true);
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
-
       </Card>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

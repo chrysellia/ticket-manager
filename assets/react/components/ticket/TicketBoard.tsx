@@ -1,13 +1,59 @@
 import { useState, useEffect } from 'react';
 import { BoardColumn } from './BoardColumn';
 import { Ticket, Priority } from './types';
+import { 
+  DndContext, 
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
+  DropAnimation
+} from '@dnd-kit/core';
+import { 
+  SortableContext, 
+  sortableKeyboardCoordinates,
+  arrayMove 
+} from '@dnd-kit/sortable';
+import { TicketCard } from './TicketCard';
+import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 
 const API_URL = '/api/tickets';
+
+type Status = 'todo' | 'in-progress' | 'done';
+
+const dropAnimationConfig: DropAnimation = {
+  sideEffects: defaultDropAnimationSideEffects({
+    styles: {
+      active: {
+        opacity: '0.4',
+      },
+    },
+  }),
+};
 
 export function TicketBoard() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
+
+  // Configure sensors for better drag experience
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required to start drag
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     fetchTickets();
@@ -43,7 +89,7 @@ export function TicketBoard() {
       }
 
       const createdTicket = await response.json();
-      setTickets([...tickets, createdTicket]);
+      setTickets(prev => [...prev, createdTicket]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add ticket');
     }
@@ -64,7 +110,9 @@ export function TicketBoard() {
       }
 
       const data = await response.json();
-      setTickets(tickets.map(t => t.id === data.id ? data : t));
+      setTickets(prev => prev.map(ticket => 
+        ticket.id === data.id ? data : ticket
+      ));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update ticket');
     }
@@ -80,60 +128,205 @@ export function TicketBoard() {
         throw new Error('Failed to delete ticket');
       }
 
-      setTickets(tickets.filter(t => t.id !== ticketId));
+      setTickets(prev => prev.filter(t => t.id !== ticketId));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete ticket');
     }
   };
 
-  const getTicketsByStatus = (status: Ticket['status']) => 
-    tickets.filter(ticket => ticket.status === status);
+  const updateTicketStatus = async (ticketId: string, newStatus: Status) => {
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket) return;
+
+    const updatedTicket = { ...ticket, status: newStatus };
+    
+    // Optimistically update the UI
+    setTickets(prev => prev.map(t => 
+      t.id === ticketId ? updatedTicket : t
+    ));
+
+    try {
+      const response = await fetch(`${API_URL}/${ticketId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedTicket),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update ticket');
+      }
+
+      const data = await response.json();
+      setTickets(prev => prev.map(t => 
+        t.id === data.id ? data : t
+      ));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to move ticket');
+      // Revert the optimistic update
+      setTickets(prev => prev.map(t => 
+        t.id === ticketId ? ticket : t
+      ));
+    }
+  };
+
+  const onDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const ticket = tickets.find(t => t.id === active.id);
+    setActiveTicket(ticket || null);
+  };
+
+  const onDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+    
+    const activeId = active.id as string;
+    const overId = over.id as string;
+    
+    const activeTicket = tickets.find(t => t.id === activeId);
+    if (!activeTicket) return;
+    
+    // If dropping on a column (status), handle it
+    if (['todo', 'in-progress', 'done'].includes(overId)) {
+      const newStatus = overId as Status;
+      
+      if (activeTicket.status !== newStatus) {
+        // Update tickets state optimistically for smooth visual feedback
+        setTickets(prev => prev.map(ticket => 
+          ticket.id === activeId 
+            ? { ...ticket, status: newStatus }
+            : ticket
+        ));
+      }
+      return;
+    }
+    
+    // If dropping on another ticket, handle reordering within the same column
+    const overTicket = tickets.find(t => t.id === overId);
+    if (!overTicket) return;
+    
+    if (activeTicket.status === overTicket.status) {
+      const sameStatusTickets = tickets.filter(t => t.status === activeTicket.status);
+      const activeIndex = sameStatusTickets.findIndex(t => t.id === activeId);
+      const overIndex = sameStatusTickets.findIndex(t => t.id === overId);
+      
+      if (activeIndex !== overIndex) {
+        const reorderedTickets = arrayMove(sameStatusTickets, activeIndex, overIndex);
+        
+        // Update the full tickets array with reordered tickets
+        setTickets(prev => {
+          const otherTickets = prev.filter(t => t.status !== activeTicket.status);
+          return [...otherTickets, ...reorderedTickets];
+        });
+      }
+    }
+  };
+
+  const onDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    setActiveTicket(null);
+    
+    if (!over) return;
+    
+    const activeId = active.id as string;
+    const overId = over.id as string;
+    
+    const activeTicket = tickets.find(t => t.id === activeId);
+    if (!activeTicket) return;
+    
+    // Handle dropping on columns
+    if (['todo', 'in-progress', 'done'].includes(overId)) {
+      const newStatus = overId as Status;
+      if (activeTicket.status !== newStatus) {
+        updateTicketStatus(activeId, newStatus);
+      }
+      return;
+    }
+    
+    // Handle dropping on tickets (for reordering)
+    const overTicket = tickets.find(t => t.id === overId);
+    if (overTicket && activeTicket.status === overTicket.status) {
+      // The reordering was already handled in onDragOver
+      // Here you could make an API call to persist the new order if needed
+      console.log('Ticket reordered within column');
+    }
+  };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-gray-600">Loading tickets...</div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border-l-4 border-red-400 p-4">
+      <div className="bg-red-50 border-l-4 border-red-400 p-4 m-4">
         <div className="flex">
           <div className="text-red-700">
-            <p>{error}</p>
+            <p className="font-medium">Error loading tickets</p>
+            <p className="text-sm">{error}</p>
+            <button 
+              onClick={fetchTickets}
+              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+            >
+              Try again
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
+  const ticketIds = tickets.map(ticket => ticket.id);
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Ticket Board</h1>
-        <p className="text-gray-600">Manage your tasks and track progress</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-6 mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Ticket Board</h1>
+        <p className="text-gray-600 mt-2">Manage your tasks and track progress</p>
       </div>
 
-      <div className="flex space-x-6 overflow-x-auto pb-6">
-        <BoardColumn
-          status="todo"
-          tickets={getTicketsByStatus('todo')}
-          onAddTicket={handleAddTicket}
-          onUpdateTicket={handleUpdateTicket}
-          onDeleteTicket={handleDeleteTicket}
-        />
-        <BoardColumn
-          status="in-progress"
-          tickets={getTicketsByStatus('in-progress')}
-          onAddTicket={handleAddTicket}
-          onUpdateTicket={handleUpdateTicket}
-          onDeleteTicket={handleDeleteTicket}
-        />
-        <BoardColumn
-          status="done"
-          tickets={getTicketsByStatus('done')}
-          onAddTicket={handleAddTicket}
-          onUpdateTicket={handleUpdateTicket}
-          onDeleteTicket={handleDeleteTicket}
-        />
+      <div className="px-6 pb-6">
+        <DndContext 
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={onDragStart}
+          onDragOver={onDragOver}
+          onDragEnd={onDragEnd}
+          modifiers={[restrictToWindowEdges]}
+        >
+          <div className="flex gap-6 overflow-x-auto pb-4">
+            <SortableContext items={ticketIds}>
+              {(['todo', 'in-progress', 'done'] as Status[]).map((status) => (
+                <BoardColumn
+                  key={status}
+                  status={status}
+                  tickets={tickets.filter(ticket => ticket.status === status)}
+                  onAddTicket={handleAddTicket}
+                  onUpdateTicket={handleUpdateTicket}
+                  onDeleteTicket={handleDeleteTicket}
+                />
+              ))}
+            </SortableContext>
+          </div>
+          
+          <DragOverlay dropAnimation={dropAnimationConfig}>
+            {activeTicket ? (
+              <div className="rotate-3 opacity-90">
+                <TicketCard 
+                  ticket={activeTicket} 
+                  onEdit={() => {}} 
+                  onDelete={() => {}} 
+                />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
     </div>
   );

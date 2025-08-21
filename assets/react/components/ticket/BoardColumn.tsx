@@ -5,6 +5,10 @@ import { Plus } from 'lucide-react';
 import { TicketCard } from './TicketCard';
 import { Ticket, Priority } from './types';
 import { TicketModal } from './TicketModal';
+import { useSortable } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 type Status = 'todo' | 'in-progress' | 'done';
 
@@ -28,6 +32,49 @@ type BoardColumnProps = {
   onDeleteTicket: (ticketId: string) => void;
 };
 
+function SortableTicketCard({ 
+  ticket, 
+  onEdit, 
+  onDelete 
+}: { 
+  ticket: Ticket; 
+  onEdit: (ticket: Ticket) => void; 
+  onDelete: (id: string) => void; 
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: ticket.id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? 'none' : transition,
+    opacity: isDragging ? 0.6 : 1,
+    cursor: isDragging ? 'grabbing' : 'grab',
+    zIndex: isDragging ? 9999 : 'auto',
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners}
+      className="touch-none"
+    >
+      <TicketCard 
+        ticket={ticket} 
+        onEdit={onEdit} 
+        onDelete={onDelete} 
+      />
+    </div>
+  );
+}
+
 export function BoardColumn({
   status,
   tickets,
@@ -35,76 +82,105 @@ export function BoardColumn({
   onUpdateTicket,
   onDeleteTicket,
 }: BoardColumnProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showAddTicket, setShowAddTicket] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   
+  // Make the column a droppable zone
+  const { setNodeRef, isOver } = useDroppable({
+    id: status,
+  });
+
   const handleAddClick = () => {
     setEditingTicket(null);
-    setIsModalOpen(true);
+    setShowAddTicket(true);
   };
 
-  const handleEditClick = (ticket: Ticket) => {
+  const handleEditTicket = (ticket: Ticket) => {
     setEditingTicket(ticket);
-    setIsModalOpen(true);
-  };
-
-  const handleModalSubmit = (data: Omit<Ticket, 'id' | 'createdAt'>) => {
-    if (editingTicket) {
-      onUpdateTicket({ ...data, id: editingTicket.id, createdAt: editingTicket.createdAt } as Ticket);
-    } else {
-      onAddTicket(data);
-    }
-    setIsModalOpen(false);
+    setShowAddTicket(true);
   };
 
   const handleModalClose = () => {
-    setIsModalOpen(false);
+    setShowAddTicket(false);
+    setEditingTicket(null);
+  };
+
+  const handleModalSubmit = (ticketData: Omit<Ticket, 'id' | 'createdAt'>) => {
+    if (editingTicket) {
+      onUpdateTicket({ ...editingTicket, ...ticketData });
+    } else {
+      onAddTicket({ ...ticketData, status });
+    }
+    setShowAddTicket(false);
     setEditingTicket(null);
   };
 
   return (
     <div className="w-80 flex-shrink-0">
-      <Card className={`h-full flex flex-col ${statusColors[status]}`}>
+      <Card 
+        className={`flex flex-col ${statusColors[status]} h-full transition-colors ${
+          isOver ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
+        }`}
+      >
         <CardHeader className="p-4 pb-2">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold">
               {statusTitles[status]}
             </CardTitle>
-            {/* <span className="text-sm text-gray-500">{tickets.length}</span> */}
+            <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+              {tickets.length}
+            </span>
           </div>
         </CardHeader>
-        <CardContent className="p-4 pt-0 flex-1 overflow-y-auto">
-          <div className="space-y-3">
+        
+        <div 
+          ref={setNodeRef}
+          className={`p-2 space-y-2 overflow-y-auto flex-1 transition-colors ${
+            isOver ? 'bg-blue-50/50' : ''
+          }`} 
+          style={{ minHeight: '200px' }}
+        >
+          <SortableContext items={tickets.map(t => t.id)} strategy={verticalListSortingStrategy}>
             {tickets.map((ticket) => (
-              <TicketCard
+              <SortableTicketCard
                 key={ticket.id}
                 ticket={ticket}
-                onEdit={handleEditClick}
+                onEdit={handleEditTicket}
                 onDelete={onDeleteTicket}
               />
             ))}
+          </SortableContext>
+          
+          {tickets.length === 0 && (
+            <div className="text-center text-gray-400 py-8">
+              <p className="text-sm">Drop tickets here</p>
+            </div>
+          )}
+          
+          <div className="pt-2">
             <Button
               variant="ghost"
-              className="w-full justify-start text-gray-500 hover:text-gray-900"
+              className="w-full justify-start text-gray-500 hover:bg-white/50 hover:text-gray-700"
               onClick={handleAddClick}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add a ticket
+              Add a card
             </Button>
-            <TicketModal
-              isOpen={isModalOpen}
-              onClose={handleModalClose}
-              onSave={handleModalSubmit}
-              ticket={editingTicket || {
-                title: '',
-                description: '',
-                status,
-                priority: 3,
-              }}
-            />
           </div>
-        </CardContent>
+        </div>
       </Card>
+
+      <TicketModal
+        isOpen={showAddTicket}
+        onClose={handleModalClose}
+        onSave={handleModalSubmit}
+        ticket={editingTicket || {
+          title: '',
+          description: '',
+          status,
+          priority: 3,
+        }}
+      />
     </div>
   );
 }
