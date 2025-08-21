@@ -1,10 +1,20 @@
 const Encore = require('@symfony/webpack-encore');
+const path = require('path');
 
 // Manually configure the runtime environment if not already configured yet by the "encore" command.
 // It's useful when you use tools that rely on webpack.config.js file.
 if (!Encore.isRuntimeEnvironmentConfigured()) {
     Encore.configureRuntimeEnvironment(process.env.NODE_ENV || 'dev');
 }
+
+// Enable TypeScript support
+Encore.enableTypeScriptLoader()
+    .enableReactPreset()
+    .addAliases({
+        '@': path.resolve(__dirname, 'assets'),
+        '@js': path.resolve(__dirname, 'assets/js'),
+        '@styles': path.resolve(__dirname, 'assets/styles')
+    });
 
 Encore
     // directory where compiled assets will be stored
@@ -20,7 +30,7 @@ Encore
      * Each entry will result in one JavaScript file (e.g. app.js)
      * and one CSS file (e.g. app.css) if your JavaScript imports CSS.
      */
-    .addEntry('app', './assets/app.js')
+    .addEntry('app', './assets/app.tsx')
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
     .splitEntryChunks()
@@ -47,6 +57,8 @@ Encore
     .enableSourceMaps(!Encore.isProduction())
     // enables hashed filenames (e.g. app.abc123.css)
     .enableVersioning(Encore.isProduction())
+    .enableSassLoader()
+    .enableReactPreset()
 
     // configure Babel
     // .configureBabel((config) => {
@@ -63,7 +75,7 @@ Encore
     .enableSassLoader()
 
     // uncomment if you use TypeScript
-    //.enableTypeScriptLoader()
+    .enableTypeScriptLoader()
 
     // uncomment if you use React
     .enableReactPreset()

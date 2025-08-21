@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./assets/*"]
+    },
+    "outDir": "./public/build",
+    "sourceMap": true,
+    "noEmit": false,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": [
+    "assets/**/*.ts",
+    "assets/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+, "assets/app.tsx", "assets/controllers/hello_controller.ts", "assets/controllers/csrf_protection_controller.ts"  ],
+  "exclude": [
+    "node_modules",
+    "var",
+    "vendor",
+    "public",
+    "assets/controllers",
+    "assets/app.js"
+  ]
+}
