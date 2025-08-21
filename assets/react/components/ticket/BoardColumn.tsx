@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { TicketCard } from './TicketCard';
 import { Ticket, Priority } from './types';
-import { TicketForm } from './TicketForm';
+import { TicketModal } from './TicketModal';
 
 type Status = 'todo' | 'in-progress' | 'done';
 
@@ -35,11 +35,31 @@ export function BoardColumn({
   onUpdateTicket,
   onDeleteTicket,
 }: BoardColumnProps) {
-  const [isAdding, setIsAdding] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   
-  const handleSubmit = (data: Omit<Ticket, 'id' | 'createdAt'>) => {
-    onAddTicket(data);
-    setIsAdding(false);
+  const handleAddClick = () => {
+    setEditingTicket(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditClick = (ticket: Ticket) => {
+    setEditingTicket(ticket);
+    setIsModalOpen(true);
+  };
+
+  const handleModalSubmit = (data: Omit<Ticket, 'id' | 'createdAt'>) => {
+    if (editingTicket) {
+      onUpdateTicket({ ...data, id: editingTicket.id, createdAt: editingTicket.createdAt } as Ticket);
+    } else {
+      onAddTicket(data);
+    }
+    setIsModalOpen(false);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setEditingTicket(null);
   };
 
   return (
@@ -50,7 +70,7 @@ export function BoardColumn({
             <CardTitle className="text-lg font-semibold">
               {statusTitles[status]}
             </CardTitle>
-            <span className="text-sm text-gray-500">{tickets.length}</span>
+            {/* <span className="text-sm text-gray-500">{tickets.length}</span> */}
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-0 flex-1 overflow-y-auto">
@@ -59,32 +79,29 @@ export function BoardColumn({
               <TicketCard
                 key={ticket.id}
                 ticket={ticket}
-                onEdit={onUpdateTicket}
+                onEdit={handleEditClick}
                 onDelete={onDeleteTicket}
               />
             ))}
-            
-            {isAdding ? (
-              <TicketForm
-                initialValues={{
-                  title: '',
-                  description: '',
-                  status,
-                  priority: 'medium',
-                }}
-                onSubmit={handleSubmit}
-                onCancel={() => setIsAdding(false)}
-              />
-            ) : (
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-gray-500 hover:text-gray-900"
-                onClick={() => setIsAdding(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add a ticket
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-gray-500 hover:text-gray-900"
+              onClick={handleAddClick}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add a ticket
+            </Button>
+            <TicketModal
+              isOpen={isModalOpen}
+              onClose={handleModalClose}
+              onSave={handleModalSubmit}
+              ticket={editingTicket || {
+                title: '',
+                description: '',
+                status,
+                priority: 3,
+              }}
+            />
           </div>
         </CardContent>
       </Card>

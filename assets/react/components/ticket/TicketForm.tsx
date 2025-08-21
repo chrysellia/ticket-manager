@@ -77,16 +77,18 @@ export function TicketForm({ initialValues, onSubmit, onCancel }: TicketFormProp
             Priority
           </label>
           <Select
-            value={priority}
+            value={priority.toString()}
             onValueChange={(value: any) => setValue('priority', value as Priority)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="1">Low (1)</SelectItem>
+              <SelectItem value="2">Low-Medium (2)</SelectItem>
+              <SelectItem value="3">Medium (3)</SelectItem>
+              <SelectItem value="4">Medium-High (4)</SelectItem>
+              <SelectItem value="5">High (5)</SelectItem>
             </SelectContent>
           </Select>
         </div>
