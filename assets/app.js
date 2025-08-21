@@ -9,11 +9,10 @@
 import './styles/app.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import * as Turbo from '@hotwired/turbo';
 
 // React example component
 function Hello() {
-    return <h1>Hello from React + Turbo!</h1>;
+    return <h1 className="text-3xl">Hello from React + Turbo!</h1>;
 }
 
 // Mount React component
