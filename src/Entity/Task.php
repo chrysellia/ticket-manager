@@ -6,6 +6,7 @@ use App\Repository\TaskRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -50,7 +51,7 @@ class Task
     
     public function __construct()
     {
-        $this->id = uniqid('task_', true);
+        $this->id = Uuid::v4()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -66,7 +67,7 @@ class Task
         return $this->id;
     }
 
-    public function setId(Uuid $id): static
+    public function setId(string $id): static
     {
         $this->id = $id;
         return $this;
