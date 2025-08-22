@@ -12,7 +12,7 @@ type Ticket = {
   id?: string;
   title: string;
   description: string;
-  status: 'todo' | 'in-progress' | 'done';
+  status: 'todo' | 'in_progress' | 'done';
   priority: Priority;
 };
 
@@ -134,7 +134,7 @@ export function TicketModal({ isOpen, onClose, onSave, ticket }: TicketModalProp
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="done">Done</SelectItem>
                 </SelectContent>
               </Select>

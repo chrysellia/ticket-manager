@@ -10,17 +10,17 @@ import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
-type Status = 'todo' | 'in-progress' | 'done';
+type Status = 'todo' | 'in_progress' | 'done';
 
 const statusTitles = {
   'todo': 'To Do',
-  'in-progress': 'In Progress',
+  'in_progress': 'In Progress',
   'done': 'Done',
 };
 
 const statusColors = {
   'todo': 'bg-gray-100',
-  'in-progress': 'bg-blue-50',
+  'in_progress': 'bg-blue-50',
   'done': 'bg-green-50',
 };
 
@@ -95,6 +95,10 @@ export function BoardColumn({
   // Make the column a droppable zone
   const { setNodeRef, isOver } = useDroppable({
     id: status,
+    data: {
+      type: 'column',
+      status: status,
+    },
   });
 
   // Memoize ticket IDs to prevent unnecessary re-renders
@@ -175,12 +179,6 @@ export function BoardColumn({
           {tickets.length === 0 && (
             <div className="text-center text-gray-400 py-8">
               <p className="text-sm">Drop tickets here</p>
-            </div>
-          )}
-          
-          {tickets.length === 0 && (
-            <div className="text-center text-gray-400 py-8">
-              <p className="text-sm">No tickets yet</p>
             </div>
           )}
         </div>

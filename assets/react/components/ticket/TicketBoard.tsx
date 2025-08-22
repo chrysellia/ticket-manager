@@ -25,7 +25,7 @@ import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 
 const API_URL = '/api/tickets';
 
-type Status = 'todo' | 'in-progress' | 'done';
+type Status = 'todo' | 'in_progress' | 'done';
 
 const dropAnimationConfig: DropAnimation = {
   sideEffects: defaultDropAnimationSideEffects({
@@ -42,6 +42,7 @@ export function TicketBoard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
+  const [originalTicketStatus, setOriginalTicketStatus] = useState<Status | null>(null);
 
   // Configure sensors for better drag experience
   const sensors = useSensors(
@@ -136,9 +137,13 @@ export function TicketBoard() {
 
   const updateTicketStatus = async (ticketId: string, newStatus: Status) => {
     const ticket = tickets.find(t => t.id === ticketId);
-    console.log(ticket)
+    console.log('Updating ticket:', ticket);
+    
     if (!ticket) return;
 
+    // Store original ticket for rollback
+    const originalTicket = { ...ticket };
+    
     const updatedTicket = { 
       ...ticket, 
       status: newStatus,
@@ -151,26 +156,30 @@ export function TicketBoard() {
     ));
 
     try {
+      // Create clean payload without id and createdAt
+      const { id, createdAt, ...updatePayload } = updatedTicket;
+      
+      console.log('Sending update request:', updatePayload);
+      
       const response = await fetch(`${API_URL}/${ticketId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          ...updatedTicket,
-          // Make sure we're only sending the fields the API expects
-          id: undefined,
-          createdAt: undefined
-        }),
+        body: JSON.stringify(updatePayload),
       });
+
+      console.log('Response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to update ticket status');
+        console.error('API Error:', errorData);
+        throw new Error(errorData.message || `Failed to update ticket status (${response.status})`);
       }
 
       const data = await response.json();
+      console.log('Update successful:', data);
       
       // Update with server response to ensure consistency
       setTickets(prev => prev.map(t => 
@@ -185,10 +194,10 @@ export function TicketBoard() {
       
       // Revert the optimistic update
       setTickets(prev => prev.map(t => 
-        t.id === ticketId ? ticket : t
+        t.id === ticketId ? originalTicket : t
       ));
       
-      throw err; // Re-throw to allow handling in the calling function
+      throw err;
     }
   };
 
@@ -196,6 +205,12 @@ export function TicketBoard() {
     const { active } = event;
     const ticket = tickets.find(t => t.id === active.id);
     setActiveTicket(ticket || null);
+    
+    // Store the original status before any drag operations
+    if (ticket) {
+      setOriginalTicketStatus(ticket.status);
+      console.log('Drag started - original status:', ticket.status);
+    }
   };
 
   const onDragOver = (event: DragOverEvent) => {
@@ -206,14 +221,25 @@ export function TicketBoard() {
     const activeId = active.id as string;
     const overId = over.id as string;
     
+    console.log('Drag over:', { activeId, overId, overData: over.data?.current });
+    
     const activeTicket = tickets.find(t => t.id === activeId);
     if (!activeTicket) return;
     
+    // Check if we're hovering over a column area (not a ticket)
+    const overData = over.data?.current;
+    const isOverColumn = ['todo', 'in_progress', 'done'].includes(overId) || 
+                        (overData?.type === 'column');
+    
+    console.log('Is over column:', isOverColumn, 'Over data:', overData);
+    
     // If dropping on a column (status), handle it
-    if (['todo', 'in-progress', 'done'].includes(overId)) {
-      const newStatus = overId as Status;
+    if (isOverColumn) {
+      const newStatus = (overId as Status) || (overData?.status as Status);
+      console.log('Hovering over column:', newStatus, 'Current status:', activeTicket.status);
       
-      if (activeTicket.status !== newStatus) {
+      if (newStatus && activeTicket.status !== newStatus) {
+        console.log('Updating ticket status during drag over');
         // Update tickets state optimistically for smooth visual feedback
         setTickets(prev => prev.map(ticket => 
           ticket.id === activeId 
@@ -224,10 +250,24 @@ export function TicketBoard() {
       return;
     }
     
-    // If dropping on another ticket, handle reordering within the same column
+    // If dropping on another ticket, check if it's in a different column
     const overTicket = tickets.find(t => t.id === overId);
     if (!overTicket) return;
     
+    console.log('Hovering over ticket:', overTicket.id, 'in column:', overTicket.status);
+    
+    // If the tickets are in different columns, move to the target column
+    if (activeTicket.status !== overTicket.status) {
+      console.log('Cross-column hover detected, moving to:', overTicket.status);
+      setTickets(prev => prev.map(ticket => 
+        ticket.id === activeId 
+          ? { ...ticket, status: overTicket.status }
+          : ticket
+      ));
+      return;
+    }
+    
+    // Handle reordering within the same column
     if (activeTicket.status === overTicket.status) {
       const sameStatusTickets = tickets.filter(t => t.status === activeTicket.status);
       const activeIndex = sameStatusTickets.findIndex(t => t.id === activeId);
@@ -248,58 +288,73 @@ export function TicketBoard() {
   const onDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     
+    console.log('Drag ended:', { 
+      activeId: active.id, 
+      overId: over?.id,
+      overData: over?.data?.current
+    });
+    
     if (!over) {
+      console.log('No over target, canceling drag');
       setActiveTicket(null);
+      setOriginalTicketStatus(null);
       return;
     }
     
     const activeId = active.id as string;
     const overId = over.id as string;
     
-    // If dropped in the same position, do nothing
-    if (activeId === overId) {
-      setActiveTicket(null);
-      return;
-    }
-    
     const activeTicket = tickets.find(t => t.id === activeId);
     if (!activeTicket) {
+      console.log('Active ticket not found');
       setActiveTicket(null);
+      setOriginalTicketStatus(null);
       return;
     }
     
-    // Handle dropping on columns (status change)
-    if (['todo', 'in-progress', 'done'].includes(overId)) {
-      const newStatus = overId as Status;
-      if (activeTicket.status !== newStatus) {
-        await updateTicketStatus(activeId, newStatus);
-      }
-    } 
-    // Handle reordering within the same column
-    else {
+    console.log('Active ticket current state:', activeTicket);
+    console.log('Original ticket status:', originalTicketStatus);
+    
+    const overData = over.data?.current;
+    const isOverColumn = ['todo', 'in_progress', 'done'].includes(overId) || 
+                        (overData?.type === 'column');
+    
+    let targetStatus: Status | null = null;
+    
+    // Determine the target status
+    if (isOverColumn) {
+      targetStatus = (overId as Status) || (overData?.status as Status);
+      console.log('Dropped on column, target status:', targetStatus);
+    } else {
+      // Dropped on a ticket - get the ticket's current status
       const overTicket = tickets.find(t => t.id === overId);
-      if (overTicket && activeTicket.status === overTicket.status) {
-        // The reordering was already handled in onDragOver
-        // Here we can persist the new order if needed
-        try {
-          const reorderedTickets = [...tickets];
-          const oldIndex = reorderedTickets.findIndex(t => t.id === activeId);
-          const newIndex = reorderedTickets.findIndex(t => t.id === overId);
-          
-          if (oldIndex !== -1 && newIndex !== -1) {
-            const [movedTicket] = reorderedTickets.splice(oldIndex, 1);
-            reorderedTickets.splice(newIndex, 0, movedTicket);
-            
-            // Update the order in the database if needed
-            // await updateTicketOrder(reorderedTickets);
-          }
-        } catch (error) {
-          console.error('Error reordering tickets:', error);
-        }
+      if (overTicket) {
+        targetStatus = overTicket.status;
+        console.log('Dropped on ticket in column:', targetStatus);
       }
+    }
+    
+    // Check if the status actually changed from the original
+    if (targetStatus && originalTicketStatus && originalTicketStatus !== targetStatus) {
+      console.log(`Status change detected: ${originalTicketStatus} -> ${targetStatus}`);
+      console.log(`Making API call to update ticket ${activeId}`);
+      
+      try {
+        await updateTicketStatus(activeId, targetStatus);
+        console.log('API call successful');
+      } catch (error) {
+        console.error('Failed to update ticket status:', error);
+      }
+    } else {
+      console.log('No status change needed', { 
+        originalStatus: originalTicketStatus, 
+        targetStatus,
+        reason: !targetStatus ? 'No target status' : 'Same status'
+      });
     }
     
     setActiveTicket(null);
+    setOriginalTicketStatus(null);
   };
 
   if (isLoading) {
@@ -318,7 +373,10 @@ export function TicketBoard() {
             <p className="font-medium">Error loading tickets</p>
             <p className="text-sm">{error}</p>
             <button 
-              onClick={fetchTickets}
+              onClick={() => {
+                setError(null);
+                fetchTickets();
+              }}
               className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
             >
               Try again
@@ -334,7 +392,7 @@ export function TicketBoard() {
   // Group tickets by status for better performance
   const ticketsByStatus = {
     'todo': tickets.filter(t => t.status === 'todo'),
-    'in-progress': tickets.filter(t => t.status === 'in-progress'),
+    'in_progress': tickets.filter(t => t.status === 'in_progress'),
     'done': tickets.filter(t => t.status === 'done')
   };
 
@@ -355,7 +413,7 @@ export function TicketBoard() {
           modifiers={[restrictToWindowEdges]}
         >
           <div className="flex gap-6 overflow-x-auto pb-2">
-            {(['todo', 'in-progress', 'done'] as Status[]).map((status) => (
+            {(['todo', 'in_progress', 'done'] as Status[]).map((status) => (
               <BoardColumn
                 key={status}
                 status={status}
