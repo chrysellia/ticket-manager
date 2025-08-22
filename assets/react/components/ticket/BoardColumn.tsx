@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -48,15 +48,22 @@ function SortableTicketCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: ticket.id });
+  } = useSortable({ 
+    id: ticket.id,
+    transition: {
+      duration: 150, // Faster transitions
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    },
+  });
 
-  const style: React.CSSProperties = {
+  const style: React.CSSProperties = useMemo(() => ({
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : transition,
-    opacity: isDragging ? 0.6 : 1,
+    opacity: isDragging ? 0.5 : 1,
     cursor: isDragging ? 'grabbing' : 'grab',
     zIndex: isDragging ? 9999 : 'auto',
-  };
+    willChange: 'transform', // Optimize for animations
+  }), [transform, transition, isDragging]);
 
   return (
     <div 
@@ -64,7 +71,7 @@ function SortableTicketCard({
       style={style} 
       {...attributes} 
       {...listeners}
-      className="touch-none"
+      className="touch-none select-none" // Prevent text selection during drag
     >
       <TicketCard 
         ticket={ticket} 
@@ -89,6 +96,9 @@ export function BoardColumn({
   const { setNodeRef, isOver } = useDroppable({
     id: status,
   });
+
+  // Memoize ticket IDs to prevent unnecessary re-renders
+  const ticketIds = useMemo(() => tickets.map(t => t.id), [tickets]);
 
   const handleAddClick = () => {
     setEditingTicket(null);
@@ -118,29 +128,40 @@ export function BoardColumn({
   return (
     <div className="w-80 flex-shrink-0">
       <Card 
-        className={`flex flex-col ${statusColors[status]} h-full transition-colors ${
-          isOver ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
+        className={`flex flex-col ${statusColors[status]} h-full transition-all duration-200 ${
+          isOver ? 'ring-2 ring-blue-400 ring-opacity-50 scale-[1.02]' : ''
         }`}
       >
-        <CardHeader className="p-4 pb-2">
+        <CardHeader className="p-3 pb-2 relative">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">
-              {statusTitles[status]}
-            </CardTitle>
-            <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
-              {tickets.length}
-            </span>
+            <div className="flex items-center space-x-2">
+              <CardTitle className="text-lg font-semibold">
+                {statusTitles[status]}
+              </CardTitle>
+              <span className="text-sm text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                {tickets.length}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-7 w-7 text-gray-500 hover:bg-gray-200/50 hover:text-gray-700 transition-colors duration-150"
+              onClick={handleAddClick}
+              title="Add a card"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
         </CardHeader>
         
         <div 
           ref={setNodeRef}
-          className={`p-2 space-y-2 overflow-y-auto flex-1 transition-colors ${
+          className={`p-2 space-y-2 overflow-y-auto flex-1 transition-all duration-200 ${
             isOver ? 'bg-blue-50/50' : ''
           }`} 
           style={{ minHeight: '200px' }}
         >
-          <SortableContext items={tickets.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={ticketIds} strategy={verticalListSortingStrategy}>
             {tickets.map((ticket) => (
               <SortableTicketCard
                 key={ticket.id}
@@ -157,16 +178,11 @@ export function BoardColumn({
             </div>
           )}
           
-          <div className="pt-2">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-gray-500 hover:bg-white/50 hover:text-gray-700"
-              onClick={handleAddClick}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add a card
-            </Button>
-          </div>
+          {tickets.length === 0 && (
+            <div className="text-center text-gray-400 py-8">
+              <p className="text-sm">No tickets yet</p>
+            </div>
+          )}
         </div>
       </Card>
 
