@@ -1,0 +1,68 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\MemberRepository;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+
+#[ORM\Entity(repositoryClass: MemberRepository::class)]
+class Member
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['member:read'])]
+    private ?int $id = null;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['member:read', 'member:write'])]
+    private string $name;
+
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    #[Groups(['member:read', 'member:write'])]
+    private string $email;
+
+    #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: 'members')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['member:read', 'member:write'])]
+    private ?Team $team = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    public function getTeam(): ?Team
+    {
+        return $this->team;
+    }
+
+    public function setTeam(?Team $team): self
+    {
+        $this->team = $team;
+        return $this;
+    }
+}

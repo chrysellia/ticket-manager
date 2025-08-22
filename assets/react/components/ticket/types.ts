@@ -1,5 +1,10 @@
 export type Priority = 1 | 2 | 3 | 4 | 5;
 
+export interface Team {
+  id: number;
+  name: string;
+}
+
 export interface Ticket {
   id: string;
   title: string;
@@ -8,6 +13,7 @@ export interface Ticket {
   priority: Priority;
   createdAt: string;
   updatedAt?: string;
+  team?: Team;
 }
 
 export interface TicketFormData extends Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'> {}

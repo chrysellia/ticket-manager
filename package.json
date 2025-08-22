@@ -37,6 +37,7 @@
         "@dnd-kit/modifiers": "^9.0.0",
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
+        "@hookform/resolvers": "^5.2.1",
         "@hotwired/turbo": "^8.0.13",
         "@radix-ui/react-alert-dialog": "^1.1.15",
         "@radix-ui/react-collapsible": "^1.1.12",
@@ -50,6 +51,7 @@
         "@radix-ui/react-tooltip": "^1.2.8",
         "@radix-ui/themes": "^3.2.1",
         "@tailwindcss/postcss": "^4.1.12",
+        "@tanstack/react-router": "^1.131.27",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "core-js": "^3.45.1",
@@ -61,6 +63,7 @@
         "react-hook-form": "^7.62.0",
         "react-router-dom": "^7.8.1",
         "tailwind-merge": "^3.3.1",
-        "tailwindcss": "^4.1.12"
+        "tailwindcss": "^4.1.12",
+        "yup": "^1.7.0"
     }
 }

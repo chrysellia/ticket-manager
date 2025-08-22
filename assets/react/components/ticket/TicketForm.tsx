@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,9 +10,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Ticket, Priority } from './types';
+import { Ticket, Priority, Team } from './types';
+import { TeamService } from '../../services/teamService';
+import { PlusCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
-type TicketFormData = Omit<Ticket, 'id' | 'createdAt'>;
+type TicketFormData = Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'> & {
+  teamId?: number;
+};
 
 type TicketFormProps = {
   initialValues: TicketFormData;
@@ -20,12 +33,51 @@ type TicketFormProps = {
 };
 
 export function TicketForm({ initialValues, onSubmit, onCancel }: TicketFormProps) {
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+
   const { register, handleSubmit, setValue, watch } = useForm<TicketFormData>({
-    defaultValues: initialValues,
+    defaultValues: {
+      ...initialValues,
+      teamId: initialValues.teamId || (initialValues.team?.id as number | undefined),
+    },
   });
 
   const status = watch('status');
   const priority = watch('priority');
+  const teamId = watch('teamId');
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const data = await TeamService.getTeams();
+        setTeams(data);
+      } catch (error) {
+        console.error('Error fetching teams:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTeams();
+  }, []);
+
+  const handleCreateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTeamName.trim()) return;
+
+    try {
+      const newTeam = await TeamService.createTeam(newTeamName);
+      setTeams(prevTeams => [...prevTeams, newTeam]);
+      setValue('teamId', newTeam.id, { shouldDirty: true });
+      setNewTeamName('');
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error creating team:', error);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -65,7 +117,7 @@ export function TicketForm({ initialValues, onSubmit, onCancel }: TicketFormProp
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todo">Backlog</SelectItem>
+              <SelectItem value="backlog">Backlog</SelectItem>
               <SelectItem value="todo">To Do</SelectItem>
               <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="done">Done</SelectItem>
@@ -95,11 +147,73 @@ export function TicketForm({ initialValues, onSubmit, onCancel }: TicketFormProp
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit">Save</Button>
+      <div className="grid gap-4">
+        <div className="space-y-2">
+          <Label>Team</Label>
+          <div className="flex gap-2">
+            <Select
+              value={teamId?.toString() || ''}
+              onValueChange={(value) => {
+                const teamId = value ? parseInt(value) : undefined;
+                setValue('teamId', teamId, { shouldDirty: true });
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a team" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">No team</SelectItem>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id.toString()}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button type="button" variant="outline" size="icon">
+                  <PlusCircle className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Team</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateTeam} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="teamName">Team Name</Label>
+                    <Input
+                      id="teamName"
+                      value={newTeamName}
+                      onChange={(e) => setNewTeamName(e.target.value)}
+                      placeholder="Enter team name"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit">Create Team</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-2 pt-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit">
+            {initialValues.title ? 'Update' : 'Create'} Ticket
+          </Button>
+        </div>
       </div>
     </form>
   );

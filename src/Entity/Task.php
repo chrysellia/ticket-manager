@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
+use App\Entity\Team;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -45,6 +46,11 @@ class Task
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['task:read'])]
     private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: 'tasks')]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['task:read', 'task:write'])]
+    private ?Team $team = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['task:read'])]
