@@ -12,6 +12,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\HasLifecycleCallbacks]
 class Task
 {
+    public const STATUS_BACKLOG = 'backlog';
     public const STATUS_TODO = 'todo';
     public const STATUS_IN_PROGRESS = 'in_progress';
     public const STATUS_DONE = 'done';
@@ -31,7 +32,7 @@ class Task
 
     #[ORM\Column(length: 20)]
     #[Groups(['task:read', 'task:write'])]
-    private string $status = self::STATUS_TODO;
+    private string $status = self::STATUS_BACKLOG;
 
     #[ORM\Column(type: Types::SMALLINT)]
     #[Groups(['task:read', 'task:write'])]
@@ -102,7 +103,7 @@ class Task
 
     public function setStatus(string $status): static
     {
-        if (!in_array($status, [self::STATUS_TODO, self::STATUS_IN_PROGRESS, self::STATUS_DONE])) {
+        if (!in_array($status, [self::STATUS_BACKLOG, self::STATUS_TODO, self::STATUS_IN_PROGRESS, self::STATUS_DONE])) {
             throw new \InvalidArgumentException("Invalid status");
         }
         $this->status = $status;

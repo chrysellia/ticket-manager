@@ -25,7 +25,7 @@ import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 
 const API_URL = '/api/tickets';
 
-type Status = 'todo' | 'in_progress' | 'done';
+type Status = 'backlog' | 'todo' | 'in_progress' | 'done';
 
 const dropAnimationConfig: DropAnimation = {
   sideEffects: defaultDropAnimationSideEffects({
@@ -391,6 +391,7 @@ export function TicketBoard() {
 
   // Group tickets by status for better performance
   const ticketsByStatus = {
+    'backlog': tickets.filter(t => t.status === 'backlog'),
     'todo': tickets.filter(t => t.status === 'todo'),
     'in_progress': tickets.filter(t => t.status === 'in_progress'),
     'done': tickets.filter(t => t.status === 'done')
@@ -413,7 +414,7 @@ export function TicketBoard() {
           modifiers={[restrictToWindowEdges]}
         >
           <div className="flex gap-6 overflow-x-auto pb-2">
-            {(['todo', 'in_progress', 'done'] as Status[]).map((status) => (
+            {(['backlog', 'todo', 'in_progress', 'done'] as Status[]).map((status) => (
               <BoardColumn
                 key={status}
                 status={status}

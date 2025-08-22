@@ -10,16 +10,18 @@ import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
-type Status = 'todo' | 'in_progress' | 'done';
+type Status = 'backlog' | 'todo' | 'in_progress' | 'done';
 
 const statusTitles = {
+  'backlog': 'Backlog',
   'todo': 'To Do',
   'in_progress': 'In Progress',
   'done': 'Done',
 };
 
 const statusColors = {
-  'todo': 'bg-gray-100',
+  'backlog': 'bg-gray-100',
+  'todo': 'bg-purple-50',
   'in_progress': 'bg-blue-50',
   'done': 'bg-green-50',
 };

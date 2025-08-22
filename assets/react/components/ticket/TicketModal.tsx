@@ -12,7 +12,7 @@ type Ticket = {
   id?: string;
   title: string;
   description: string;
-  status: 'todo' | 'in_progress' | 'done';
+  status: 'backlog' | 'todo' | 'in_progress' | 'done';
   priority: Priority;
 };
 

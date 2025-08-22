@@ -25,7 +25,7 @@ type Ticket = {
   id: string;
   title: string;
   description: string;
-  status: 'todo' | 'in_progress' | 'done';
+  status: 'backlog' | 'todo' | 'in_progress' | 'done';
   priority: Priority;
   createdAt: string;
 };
@@ -58,9 +58,9 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
     <div className="group relative">
       <Card className="mb-1 overflow-hidden transition-all duration-200 hover:shadow-md py-0">
         <div className="px-4 py-1">
-          <div className="flex justify-between items-center">
-            <div className="w-full">
-              <div className="flex justify-start items-center">
+          <div className="flex items-center w-full">
+            <div className="flex items-center w-full">
+              <div className="flex flex-auto justify-start items-center">
                 <div className="text-sm font-medium truncate">{ticket.title}</div>
                 <div className="flex-auto"></div>
                 <div
@@ -71,35 +71,34 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-7 w-7 transition-opacity"
-                    >
-                      <MoreHorizontal className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(ticket)}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      <span>Edit</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="text-red-600" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowDeleteDialog(true);
-                      }}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      <span>Delete</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-7 w-7 transition-opacity"
+                  >
+                    <MoreHorizontal className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit(ticket)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    <span>Edit</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="text-red-600" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>Delete</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
