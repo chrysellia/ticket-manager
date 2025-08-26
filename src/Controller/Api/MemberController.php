@@ -98,6 +98,9 @@ class MemberController extends AbstractController
         if (isset($data['jobDescription'])) {
             $member->setJobDescription($data['jobDescription']);
         }
+        if (isset($data['skills'])) {
+            $member->setSkills($data['skills']);
+        }
         if (!isset($data['projectId'])) {
             return $this->json(
                 ['error' => 'projectId is required'],
@@ -171,6 +174,9 @@ class MemberController extends AbstractController
         }
         if (isset($data['jobDescription'])) {
             $member->setJobDescription($data['jobDescription']);
+        }
+        if (isset($data['skills'])) {
+            $member->setSkills($data['skills']);
         }
         if (isset($data['projectId'])) {
             $project = $this->projectRepository->find((int)$data['projectId']);

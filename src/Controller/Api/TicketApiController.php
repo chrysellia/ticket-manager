@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Service\AssignmentSuggester;
 
 #[Route('/api/tickets')]
 class TicketApiController extends AbstractController
@@ -24,7 +25,8 @@ class TicketApiController extends AbstractController
         private ProjectRepository $projectRepository,
         private MemberRepository $memberRepository,
         private SerializerInterface $serializer,
-        private ValidatorInterface $validator
+        private ValidatorInterface $validator,
+        private AssignmentSuggester $assignmentSuggester
     ) {}
 
     #[Route('', name: 'api_tickets_list', methods: ['GET'])]
@@ -99,6 +101,31 @@ class TicketApiController extends AbstractController
         $this->entityManager->flush();
 
         return $this->json($task, Response::HTTP_CREATED, [], ['groups' => ['task:read']]);
+    }
+
+    #[Route('/suggest-assignee', name: 'api_tickets_suggest_assignee', methods: ['POST'])]
+    public function suggestAssignee(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true) ?? [];
+        $title = (string) ($data['title'] ?? '');
+        $description = (string) ($data['description'] ?? '');
+        $projectId = isset($data['projectId']) && $data['projectId'] !== '' ? (int) $data['projectId'] : null;
+
+        if (trim($title . ' ' . $description) === '') {
+            return $this->json(['member' => null], Response::HTTP_OK);
+        }
+
+        $member = $this->assignmentSuggester->suggest($title, $description, $projectId);
+        if (!$member) {
+            return $this->json(['member' => null], Response::HTTP_OK);
+        }
+
+        return $this->json([
+            'member' => [
+                'id' => $member->getId(),
+                'name' => $member->getName(),
+            ]
+        ], Response::HTTP_OK);
     }
 
     #[Route('/{id}', name: 'api_tickets_update', methods: ['PUT'])]

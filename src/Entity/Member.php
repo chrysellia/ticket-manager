@@ -42,6 +42,10 @@ class Member
     #[Groups(['member:read', 'member:write'])]
     private ?Project $project = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['member:read', 'member:write'])]
+    private ?string $skills = null; // comma-separated list of skills/keywords
+
     public function getId(): ?int
     {
         return $this->id;
@@ -110,6 +114,17 @@ class Member
     public function setProject(?Project $project): self
     {
         $this->project = $project;
+        return $this;
+    }
+
+    public function getSkills(): ?string
+    {
+        return $this->skills;
+    }
+
+    public function setSkills(?string $skills): self
+    {
+        $this->skills = $skills;
         return $this;
     }
 }
