@@ -38,7 +38,7 @@ export function MemberList({
         <p className="text-gray-600 mt-2">A list of all team members including their name, email and team.</p>
       </div>
 
-      <div className="mb-2">
+      <div className="">
         <MemberModal onSuccess={onMemberCreated}>
           <Button>+ Create Member</Button>
         </MemberModal>
