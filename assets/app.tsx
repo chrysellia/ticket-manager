@@ -27,11 +27,15 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<DefaultLanding />} />
-                <Route path="tickets" element={<TicketBoard />} />
+                {/* Projects is always accessible (for first-time selection) */}
                 <Route path="projects" element={<ProjectsPage />} />
-                <Route path="teams" element={<TeamsPage />} />
-                <Route path="members" element={<MembersPage />} />
-                <Route path="settings" element={<SettingsPage />} />
+                {/* All other app routes require a selected project */}
+                <Route element={<ProjectRequiredRoute />}>
+                  <Route path="tickets" element={<TicketBoard />} />
+                  <Route path="teams" element={<TeamsPage />} />
+                  <Route path="members" element={<MembersPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                </Route>
                 <Route path="*" element={<Navigate to="tickets" replace />} />
               </Route>
             </Route>
@@ -41,6 +45,21 @@ function App() {
       </AuthProvider>
     </ThemeProvider>
   );
+}
+
+function ProjectRequiredRoute() {
+  const { selectedProjectId, loading } = useProject();
+  if (loading) {
+    return (
+      <div className="min-h-[50vh] grid place-items-center text-sm text-gray-500">
+        Loading projects...
+      </div>
+    );
+  }
+  if (selectedProjectId == null) {
+    return <Navigate to="/projects" replace />;
+  }
+  return <Outlet />;
 }
 
 // Mount React component

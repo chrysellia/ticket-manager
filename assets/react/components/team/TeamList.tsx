@@ -46,23 +46,31 @@ export function TeamList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {teams.map((team) => (
-              <TableRow key={team.id}>
-                <TableCell>{team.id}</TableCell>
-                <TableCell>{team.name}</TableCell>
-                <TableCell className="text-right">
-<TeamModal team={team} onSuccess={handleSuccess}>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mr-2"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </TeamModal>
+            {teams.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center text-sm text-gray-500 py-8">
+                  No teams found. Use "Create Team" to add your first team.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              teams.map((team) => (
+                <TableRow key={team.id}>
+                  <TableCell>{team.id}</TableCell>
+                  <TableCell>{team.name}</TableCell>
+                  <TableCell className="text-right">
+                    <TeamModal team={team} onSuccess={handleSuccess}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mr-2"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TeamModal>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

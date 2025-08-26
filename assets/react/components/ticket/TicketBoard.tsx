@@ -22,6 +22,7 @@ import {
 } from '@dnd-kit/sortable';
 import { TicketCard } from './TicketCard';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
+import { useProject } from '../../context/ProjectContext';
 
 const API_URL = '/api/tickets';
 
@@ -43,6 +44,7 @@ export function TicketBoard() {
   const [error, setError] = useState<string | null>(null);
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
   const [originalTicketStatus, setOriginalTicketStatus] = useState<Status | null>(null);
+  const { selectedProjectId } = useProject();
 
   // Configure sensors for better drag experience
   const sensors = useSensors(
@@ -57,12 +59,17 @@ export function TicketBoard() {
   );
 
   useEffect(() => {
+    setIsLoading(true);
     fetchTickets();
-  }, []);
+  }, [selectedProjectId]);
 
   const fetchTickets = async () => {
     try {
-      const response = await fetch(API_URL, { credentials: 'include' });
+      const url = new URL(API_URL, window.location.origin);
+      if (selectedProjectId) {
+        url.searchParams.set('projectId', String(selectedProjectId));
+      }
+      const response = await fetch(url.toString(), { credentials: 'include' });
       if (!response.ok) {
         throw new Error('Failed to fetch tickets');
       }
@@ -77,13 +84,16 @@ export function TicketBoard() {
 
   const handleAddTicket = async (newTicket: Omit<Ticket, 'id' | 'createdAt'>) => {
     try {
+      if (!selectedProjectId) {
+        throw new Error('No project selected');
+      }
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(newTicket),
+        body: JSON.stringify({ ...newTicket, projectId: selectedProjectId }),
       });
 
       if (!response.ok) {
@@ -105,7 +115,7 @@ export function TicketBoard() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(updatedTicket),
+        body: JSON.stringify({ ...updatedTicket, projectId: selectedProjectId ?? undefined }),
       });
 
       if (!response.ok) {
@@ -171,7 +181,7 @@ export function TicketBoard() {
           'Accept': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(updatePayload),
+        body: JSON.stringify({ ...updatePayload, projectId: selectedProjectId ?? undefined }),
       });
 
       console.log('Response status:', response.status);
