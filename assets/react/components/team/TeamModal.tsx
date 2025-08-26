@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Team } from '../ticket/types';
 import { TeamService } from '../../services/teamService';
+import { useProject } from '../../context/ProjectContext';
 
 type TeamFormData = {
   name: string;
@@ -19,6 +20,7 @@ type TeamModalProps = {
 export function TeamModal({ team, onSuccess, children }: TeamModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { selectedProjectId } = useProject();
   
   const { register, handleSubmit, reset, formState: { errors } } = useForm<TeamFormData>();
 
@@ -34,9 +36,10 @@ export function TeamModal({ team, onSuccess, children }: TeamModalProps) {
     setIsLoading(true);
     try {
       if (team) {
-        await TeamService.updateTeam(team.id, data.name);
+        await TeamService.updateTeam(team.id, data.name, selectedProjectId ?? undefined);
       } else {
-        await TeamService.createTeam(data.name);
+        if (!selectedProjectId) throw new Error('No project selected');
+        await TeamService.createTeam(data.name, selectedProjectId);
       }
       setIsOpen(false);
       onSuccess();

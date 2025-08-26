@@ -5,13 +5,15 @@ import { Pencil } from 'lucide-react';
 import { Team } from '../ticket/types';
 import { TeamService } from '../../services/teamService';
 import { TeamModal } from './TeamModal';
+import { useProject } from '../../context/ProjectContext';
 
 export function TeamList() {
   const [teams, setTeams] = useState<Team[]>([]);
+  const { selectedProjectId } = useProject();
 
   const fetchTeams = async () => {
     try {
-      const data = await TeamService.getTeams();
+      const data = await TeamService.getTeams(selectedProjectId ?? undefined);
       setTeams(data);
     } catch (error) {
       console.error('Error fetching teams:', error);
@@ -20,7 +22,7 @@ export function TeamList() {
 
   useEffect(() => {
     fetchTeams();
-  }, []);
+  }, [selectedProjectId]);
 
   const handleSuccess = () => {
     fetchTeams();

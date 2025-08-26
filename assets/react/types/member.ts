@@ -16,9 +16,12 @@ export interface CreateMemberDto {
   jobPosition?: string | null;
   jobDescription?: string | null;
   teamId?: number;
+  projectId: number;
 }
 
-export interface UpdateMemberDto extends Partial<CreateMemberDto> {}
+export interface UpdateMemberDto extends Partial<CreateMemberDto> {
+  projectId?: number;
+}
 
 export interface MemberTableProps {
   members: Member[];

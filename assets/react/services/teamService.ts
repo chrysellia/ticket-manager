@@ -1,8 +1,10 @@
 import { Team } from '../components/ticket/types';
 
 export const TeamService = {
-  async getTeams(): Promise<Team[]> {
-    const response = await fetch('/api/teams', { credentials: 'include' });
+  async getTeams(projectId?: number): Promise<Team[]> {
+    const url = new URL('/api/teams', window.location.origin);
+    if (projectId) url.searchParams.set('projectId', String(projectId));
+    const response = await fetch(url.toString(), { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch teams');
     }
@@ -17,14 +19,14 @@ export const TeamService = {
     return response.json();
   },
 
-  async createTeam(name: string): Promise<Team> {
+  async createTeam(name: string, projectId: number): Promise<Team> {
     const response = await fetch('/api/teams', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, projectId }),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -33,14 +35,14 @@ export const TeamService = {
     return response.json();
   },
 
-  async updateTeam(id: number, name: string): Promise<Team> {
+  async updateTeam(id: number, name: string, projectId?: number): Promise<Team> {
     const response = await fetch(`/api/teams/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(projectId ? { name, projectId } : { name }),
     });
     if (!response.ok) {
       const error = await response.json();

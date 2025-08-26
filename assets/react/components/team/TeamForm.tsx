@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Team } from '../ticket/types';
 import { TeamService } from '../../services/teamService';
 import { useEffect, useState } from 'react';
+import { useProject } from '../../context/ProjectContext';
 
 type TeamFormData = {
   name: string;
@@ -18,6 +19,7 @@ export function TeamForm({ isEdit = false }: TeamFormProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { selectedProjectId } = useProject();
   
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<TeamFormData>();
 
@@ -41,7 +43,11 @@ export function TeamForm({ isEdit = false }: TeamFormProps) {
       if (isEdit && id) {
         await TeamService.updateTeam(parseInt(id), data.name);
       } else {
-        await TeamService.createTeam(data.name);
+        if (!selectedProjectId) {
+          console.error('No project selected. Cannot create a team without a project.');
+          return;
+        }
+        await TeamService.createTeam(data.name, selectedProjectId);
       }
       navigate('/teams');
     } catch (error) {

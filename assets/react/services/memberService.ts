@@ -3,8 +3,10 @@ import { CreateMemberDto, Member, UpdateMemberDto } from '../types/member';
 const API_BASE_URL = '/api/members';
 
 export const MemberService = {
-  async getMembers(): Promise<Member[]> {
-    const response = await fetch(API_BASE_URL, { credentials: 'include' });
+  async getMembers(projectId?: number): Promise<Member[]> {
+    const url = new URL(API_BASE_URL, window.location.origin);
+    if (projectId) url.searchParams.set('projectId', String(projectId));
+    const response = await fetch(url.toString(), { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch members');
     }

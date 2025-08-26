@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
+import { useProject } from '../../context/ProjectContext';
+
 type TicketFormData = Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'> & {
   teamId?: number;
 };
@@ -38,6 +40,8 @@ export function TicketForm({ initialValues, onSubmit, onCancel }: TicketFormProp
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
 
+  const { selectedProjectId } = useProject();
+
   const { register, handleSubmit, setValue, watch } = useForm<TicketFormData>({
     defaultValues: {
       ...initialValues,
@@ -52,7 +56,7 @@ export function TicketForm({ initialValues, onSubmit, onCancel }: TicketFormProp
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const data = await TeamService.getTeams();
+        const data = await TeamService.getTeams(selectedProjectId ?? undefined);
         setTeams(data);
       } catch (error) {
         console.error('Error fetching teams:', error);
@@ -62,14 +66,18 @@ export function TicketForm({ initialValues, onSubmit, onCancel }: TicketFormProp
     };
 
     fetchTeams();
-  }, []);
+  }, [selectedProjectId]);
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTeamName.trim()) return;
 
     try {
-      const newTeam = await TeamService.createTeam(newTeamName);
+      if (!selectedProjectId) {
+        console.error('No project selected. Cannot create a team without a project.');
+        return;
+      }
+      const newTeam = await TeamService.createTeam(newTeamName, selectedProjectId);
       setTeams(prevTeams => [...prevTeams, newTeam]);
       setValue('teamId', newTeam.id, { shouldDirty: true });
       setNewTeamName('');

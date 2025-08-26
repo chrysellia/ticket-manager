@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { MemberList } from '../components/member/MemberList';
 import { Member } from '../types/member';
 import { MemberService } from '../services/memberService';
+import { useProject } from '../context/ProjectContext';
 
 export function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { selectedProjectId } = useProject();
 
   const fetchMembers = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await MemberService.getMembers();
+      const data = await MemberService.getMembers(selectedProjectId ?? undefined);
       setMembers(data);
     } catch (err) {
       console.error('Error fetching members:', err);
@@ -24,7 +26,7 @@ export function MembersPage() {
 
   useEffect(() => {
     fetchMembers();
-  }, []);
+  }, [selectedProjectId]);
 
   const handleMemberCreated = () => {
     fetchMembers();

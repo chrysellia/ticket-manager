@@ -8,6 +8,7 @@ import { TeamsPage } from './react/pages/TeamsPage';
 import { MembersPage } from './react/pages/MembersPage';
 import { LoginPage } from './react/pages/LoginPage';
 import { AuthProvider, useAuth } from './react/context/AuthContext';
+import { ProjectProvider } from './react/context/ProjectContext';
 import { ThemeProvider } from './react/providers/theme-provider';
 import '@/styles/app.css';
 
@@ -18,7 +19,8 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router basename={BASE_PATH}>
+        <ProjectProvider>
+          <Router basename={BASE_PATH}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route element={<ProtectedRoute />}>
@@ -32,7 +34,8 @@ function App() {
               </Route>
             </Route>
           </Routes>
-        </Router>
+          </Router>
+        </ProjectProvider>
       </AuthProvider>
     </ThemeProvider>
   );

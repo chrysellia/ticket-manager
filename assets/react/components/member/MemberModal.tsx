@@ -4,6 +4,7 @@ import { Member, CreateMemberDto, UpdateMemberDto } from '../../types/member';
 import { TeamService } from '../../services/teamService';
 import { MemberService } from '../../services/memberService';
 import { Team } from '../../types/team';
+import { useProject } from '../../context/ProjectContext';
 
 const JOB_POSITIONS = [
   'Chief Executive Officer (CEO)',
@@ -162,12 +163,13 @@ export function MemberModal({ member, onSuccess, children }: MemberModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [teams, setTeams] = useState<Team[]>([]);
+  const { selectedProjectId } = useProject();
   
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<MemberFormData>();
 
   const fetchTeams = async () => {
     try {
-      const data = await TeamService.getTeams();
+      const data = await TeamService.getTeams(selectedProjectId ?? undefined);
       setTeams(data);
     } catch (error) {
       console.error('Error fetching teams:', error);
@@ -201,9 +203,13 @@ export function MemberModal({ member, onSuccess, children }: MemberModalProps) {
     setIsLoading(true);
     try {
       if (member) {
-        await MemberService.updateMember(member.id, data as UpdateMemberDto);
+        const payload: UpdateMemberDto = { ...data };
+        if (selectedProjectId) payload.projectId = selectedProjectId;
+        await MemberService.updateMember(member.id, payload);
       } else {
-        await MemberService.createMember(data as CreateMemberDto);
+        if (!selectedProjectId) throw new Error('No project selected');
+        const payload: CreateMemberDto = { ...data, projectId: selectedProjectId };
+        await MemberService.createMember(payload);
       }
       setIsOpen(false);
       onSuccess();
