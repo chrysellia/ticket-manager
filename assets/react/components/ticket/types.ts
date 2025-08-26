@@ -1,4 +1,5 @@
 export type Priority = 1 | 2 | 3 | 4 | 5;
+import type { Member } from '@/react/types/member';
 
 export interface Team {
   id: number;
@@ -14,6 +15,7 @@ export interface Ticket {
   createdAt: string;
   updatedAt?: string;
   team?: Team;
+  assignedTo?: Member | null;
 }
 
 export interface TicketFormData extends Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'> {}

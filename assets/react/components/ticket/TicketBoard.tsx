@@ -87,13 +87,15 @@ export function TicketBoard() {
       if (!selectedProjectId) {
         throw new Error('No project selected');
       }
+      const assignedToId = (newTicket as any).assignedTo ? (newTicket as any).assignedTo.id : undefined;
+      const { assignedTo, ...rest } = newTicket as any;
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ ...newTicket, projectId: selectedProjectId }),
+        body: JSON.stringify({ ...rest, projectId: selectedProjectId, assignedToId }),
       });
 
       if (!response.ok) {
@@ -109,13 +111,15 @@ export function TicketBoard() {
 
   const handleUpdateTicket = async (updatedTicket: Ticket) => {
     try {
+      const assignedToId = updatedTicket.assignedTo ? updatedTicket.assignedTo.id : undefined;
+      const { assignedTo, ...rest } = updatedTicket as any;
       const response = await fetch(`${API_URL}/${updatedTicket.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ ...updatedTicket, projectId: selectedProjectId ?? undefined }),
+        body: JSON.stringify({ ...rest, projectId: selectedProjectId ?? undefined, assignedToId }),
       });
 
       if (!response.ok) {
@@ -170,7 +174,8 @@ export function TicketBoard() {
 
     try {
       // Create clean payload without id and createdAt
-      const { id, createdAt, ...updatePayload } = updatedTicket;
+      const { id, createdAt, assignedTo, ...updatePayload } = updatedTicket as any;
+      const assignedToId = assignedTo ? assignedTo.id : undefined;
       
       console.log('Sending update request:', updatePayload);
       
@@ -181,7 +186,7 @@ export function TicketBoard() {
           'Accept': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ ...updatePayload, projectId: selectedProjectId ?? undefined }),
+        body: JSON.stringify({ ...updatePayload, projectId: selectedProjectId ?? undefined, assignedToId }),
       });
 
       console.log('Response status:', response.status);

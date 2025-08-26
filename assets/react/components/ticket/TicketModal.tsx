@@ -5,6 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Member } from '@/react/types/member';
+import { MemberService } from '@/react/services/memberService';
+import { useProject } from '@/react/context/ProjectContext';
 
 type Priority = 1 | 2 | 3 | 4 | 5;
 
@@ -14,6 +17,7 @@ type Ticket = {
   description: string;
   status: 'backlog' | 'todo' | 'in_progress' | 'done';
   priority: Priority;
+  assignedTo?: Member | null;
 };
 
 type TicketModalProps = {
@@ -24,6 +28,9 @@ type TicketModalProps = {
 };
 
 export function TicketModal({ isOpen, onClose, onSave, ticket }: TicketModalProps) {
+  const { selectedProjectId } = useProject();
+  const [members, setMembers] = useState<Member[]>([]);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [formData, setFormData] = useState<Omit<Ticket, 'id' | 'createdAt'>>({
     title: '',
     description: '',
@@ -38,6 +45,7 @@ export function TicketModal({ isOpen, onClose, onSave, ticket }: TicketModalProp
         description: ticket.description,
         status: ticket.status,
         priority: ticket.priority,
+        assignedTo: ticket.assignedTo ?? null,
       });
     } else {
       setFormData({
@@ -45,9 +53,26 @@ export function TicketModal({ isOpen, onClose, onSave, ticket }: TicketModalProp
         description: '',
         status: 'todo',
         priority: 3,
+        assignedTo: null,
       });
     }
   }, [ticket, isOpen]);
+
+  useEffect(() => {
+    const loadMembers = async () => {
+      if (!isOpen) return;
+      try {
+        setIsLoadingMembers(true);
+        const list = await MemberService.getMembers(selectedProjectId || undefined);
+        setMembers(list);
+      } catch (e) {
+        console.error('Failed to load members', e);
+      } finally {
+        setIsLoadingMembers(false);
+      }
+    };
+    loadMembers();
+  }, [isOpen, selectedProjectId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +162,32 @@ export function TicketModal({ isOpen, onClose, onSave, ticket }: TicketModalProp
                   <SelectItem value="todo">To Do</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="done">Done</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="assignee" className="text-right">
+                Assignee
+              </Label>
+              <Select
+                value={formData.assignedTo ? String(formData.assignedTo.id) : 'unassigned'}
+                onValueChange={(value) => {
+                  if (value === 'unassigned') {
+                    setFormData(prev => ({ ...prev, assignedTo: null }));
+                  } else {
+                    const selected = members.find(m => String(m.id) === value) || null;
+                    setFormData(prev => ({ ...prev, assignedTo: selected }));
+                  }
+                }}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder={isLoadingMembers ? 'Loading...' : 'Unassigned'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {members.map(m => (
+                    <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

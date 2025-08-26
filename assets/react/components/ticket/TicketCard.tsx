@@ -18,17 +18,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { Ticket, Priority } from './types';
 
-type Priority = 1 | 2 | 3 | 4 | 5;
-
-type Ticket = {
-  id: string;
-  title: string;
-  description: string;
-  status: 'backlog' | 'todo' | 'in_progress' | 'done';
-  priority: Priority;
-  createdAt: string;
-};
+ 
 
 type TicketCardProps = {
   ticket: Ticket;
@@ -69,6 +62,25 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
                 >
                   {priorityLabels[ticket.priority]}
                 </div>
+                {ticket.assignedTo && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="ml-2 h-7 w-7 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center text-[10px] font-bold uppercase"
+                        aria-label={`Assignee: ${ticket.assignedTo.name}`}
+                      >
+                        {ticket.assignedTo.name
+                          .split(/\s+/)
+                          .filter(Boolean)
+                          .map((w) => w[0] ?? '')
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent sideOffset={6}>{ticket.assignedTo.name}</TooltipContent>
+                  </Tooltip>
+                )}
               </div>
 
 
