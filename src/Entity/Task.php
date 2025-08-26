@@ -49,7 +49,7 @@ class Task
     #[Groups(['task:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: 'tasks')]
+    #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: 'tasks', cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['task:read', 'task:write'])]
     private ?Team $team = null;
