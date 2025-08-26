@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Task;
 use App\Repository\TaskRepository;
+use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,26 +20,41 @@ class TicketApiController extends AbstractController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private TaskRepository $taskRepository,
+        private ProjectRepository $projectRepository,
         private SerializerInterface $serializer,
         private ValidatorInterface $validator
     ) {}
 
     #[Route('', name: 'api_tickets_list', methods: ['GET'])]
-    public function list(): JsonResponse
+    public function list(Request $request): JsonResponse
     {
-        $tasks = $this->taskRepository->findAll();
+        $projectId = $request->query->getInt('projectId', 0);
+        if ($projectId > 0) {
+            $tasks = $this->taskRepository->findByProject($projectId);
+        } else {
+            $tasks = $this->taskRepository->findAll();
+        }
         return $this->json($tasks, Response::HTTP_OK, [], ['groups' => ['task:read']]);
     }
 
     #[Route('', name: 'api_tickets_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        $data = json_decode($request->getContent(), true) ?? [];
         $task = $this->serializer->deserialize(
             $request->getContent(),
             Task::class,
             'json',
             ['groups' => ['task:write']]
         );
+
+        if (isset($data['projectId'])) {
+            $project = $this->projectRepository->find((int) $data['projectId']);
+            if (!$project) {
+                return $this->json(['error' => 'Project not found'], Response::HTTP_BAD_REQUEST);
+            }
+            $task->setProject($project);
+        }
 
         if (!$task->getStatus()) {
             $task->setStatus(Task::STATUS_TODO);
@@ -58,6 +74,8 @@ class TicketApiController extends AbstractController
     #[Route('/{id}', name: 'api_tickets_update', methods: ['PUT'])]
     public function update(Task $task, Request $request): JsonResponse
     {
+        $data = json_decode($request->getContent(), true) ?? [];
+
         $this->serializer->deserialize(
             $request->getContent(),
             Task::class,
@@ -67,6 +85,14 @@ class TicketApiController extends AbstractController
                 'object_to_populate' => $task,
             ]
         );
+
+        if (isset($data['projectId'])) {
+            $project = $this->projectRepository->find((int) $data['projectId']);
+            if (!$project) {
+                return $this->json(['error' => 'Project not found'], Response::HTTP_BAD_REQUEST);
+            }
+            $task->setProject($project);
+        }
 
         $errors = $this->validator->validate($task);
         if (count($errors) > 0) {
