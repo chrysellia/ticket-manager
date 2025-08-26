@@ -1,0 +1,15 @@
+# Docker ignore file to keep image context small
+.git
+.gitignore
+node_modules
+vendor
+var/cache
+var/log
+.env.local
+.env.*.local
+coverage
+npm-debug.log
+yarn-error.log
+.DS_Store
+.idea
+.vscode
