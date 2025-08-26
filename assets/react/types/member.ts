@@ -2,6 +2,8 @@ export interface Member {
   id: number;
   name: string;
   email: string;
+  jobPosition?: string | null;
+  jobDescription?: string | null;
   team?: {
     id: number;
     name: string;
@@ -11,6 +13,8 @@ export interface Member {
 export interface CreateMemberDto {
   name: string;
   email: string;
+  jobPosition?: string | null;
+  jobDescription?: string | null;
   teamId?: number;
 }
 

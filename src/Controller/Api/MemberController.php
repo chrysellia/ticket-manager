@@ -85,6 +85,12 @@ class MemberController extends AbstractController
         $member = new Member();
         $member->setName($data['name']);
         $member->setEmail($data['email']);
+        if (isset($data['jobPosition'])) {
+            $member->setJobPosition($data['jobPosition']);
+        }
+        if (isset($data['jobDescription'])) {
+            $member->setJobDescription($data['jobDescription']);
+        }
         
         if (isset($data['teamId'])) {
             $team = $this->teamRepository->find($data['teamId']);
@@ -138,6 +144,12 @@ class MemberController extends AbstractController
         }
         if (isset($data['email'])) {
             $member->setEmail($data['email']);
+        }
+        if (isset($data['jobPosition'])) {
+            $member->setJobPosition($data['jobPosition']);
+        }
+        if (isset($data['jobDescription'])) {
+            $member->setJobDescription($data['jobDescription']);
         }
         if (isset($data['teamId'])) {
             $team = $this->teamRepository->find($data['teamId']);

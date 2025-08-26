@@ -5,6 +5,50 @@ import { TeamService } from '../../services/teamService';
 import { MemberService } from '../../services/memberService';
 import { Team } from '../../types/team';
 
+const JOB_POSITIONS = [
+  'Chief Executive Officer (CEO)',
+  'Chief Operating Officer (COO)',
+  'Chief Technology Officer (CTO)',
+  'Chief Financial Officer (CFO)',
+  'VP of Engineering',
+  'VP of Product',
+  'VP of Marketing',
+  'VP of Sales',
+  'Engineering Manager',
+  'Product Manager',
+  'Project Manager',
+  'Scrum Master',
+  'Tech Lead',
+  'Software Engineer I',
+  'Software Engineer II',
+  'Senior Software Engineer',
+  'Staff Software Engineer',
+  'Principal Software Engineer',
+  'Frontend Developer',
+  'Backend Developer',
+  'Full Stack Developer',
+  'Mobile Developer',
+  'DevOps Engineer',
+  'Site Reliability Engineer (SRE)',
+  'QA Engineer',
+  'QA Lead',
+  'UX Designer',
+  'UI Designer',
+  'Product Designer',
+  'Data Analyst',
+  'Data Scientist',
+  'Data Engineer',
+  'Business Analyst',
+  'Solutions Architect',
+  'Cloud Architect',
+  'Security Engineer',
+  'Support Engineer',
+  'Customer Success Manager',
+  'Sales Engineer',
+  'Intern',
+  'Other',
+];
+
 // Simple button component
 const Button = ({ onClick, children, className = '', style = {}, ...props }: any) => (
   <button 
@@ -104,6 +148,8 @@ type MemberFormData = {
   name: string;
   email: string;
   teamId?: number;
+  jobPosition?: string | null;
+  jobDescription?: string | null;
 };
 
 type MemberModalProps = {
@@ -135,13 +181,17 @@ export function MemberModal({ member, onSuccess, children }: MemberModalProps) {
         reset({
           name: member.name,
           email: member.email,
-          teamId: member.team?.id
+          teamId: member.team?.id,
+          jobPosition: member.jobPosition || '',
+          jobDescription: member.jobDescription || ''
         });
       } else {
         reset({
           name: '',
           email: '',
-          teamId: undefined
+          teamId: undefined,
+          jobPosition: '',
+          jobDescription: ''
         });
       }
     }
@@ -207,6 +257,43 @@ export function MemberModal({ member, onSuccess, children }: MemberModalProps) {
                 borderRadius: '0.375rem',
                 border: `1px solid ${errors.email ? '#ef4444' : '#d1d5db'}`,
                 fontSize: '0.875rem'
+              }}
+            />
+          </FormField>
+
+          <FormField label="Job Position">
+            <select
+              value={watch('jobPosition') ?? ''}
+              onChange={(e) => setValue('jobPosition', e.target.value || '')}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                borderRadius: '0.375rem',
+                border: '1px solid #d1d5db',
+                fontSize: '0.875rem',
+                backgroundColor: 'white'
+              }}
+            >
+              <option value="">Select a position</option>
+              {JOB_POSITIONS.map((pos) => (
+                <option key={pos} value={pos}>{pos}</option>
+              ))}
+            </select>
+          </FormField>
+
+          <FormField label="Job Description">
+            <textarea
+              id="jobDescription"
+              rows={4}
+              {...register('jobDescription')}
+              placeholder="Describe the role, responsibilities, or notes..."
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                borderRadius: '0.375rem',
+                border: '1px solid #d1d5db',
+                fontSize: '0.875rem',
+                resize: 'vertical'
               }}
             />
           </FormField>

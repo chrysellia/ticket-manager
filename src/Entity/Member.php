@@ -28,6 +28,14 @@ class Member
     #[Groups(['member:read', 'member:write'])]
     private ?Team $team = null;
 
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    #[Groups(['member:read', 'member:write'])]
+    private ?string $jobPosition = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['member:read', 'member:write'])]
+    private ?string $jobDescription = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -65,4 +73,27 @@ class Member
         $this->team = $team;
         return $this;
     }
+
+    public function getJobPosition(): ?string
+    {
+        return $this->jobPosition;
+    }
+
+    public function setJobPosition(?string $jobPosition): self
+    {
+        $this->jobPosition = $jobPosition;
+        return $this;
+    }
+
+    public function getJobDescription(): ?string
+    {
+        return $this->jobDescription;
+    }
+
+    public function setJobDescription(?string $jobDescription): self
+    {
+        $this->jobDescription = $jobDescription;
+        return $this;
+    }
 }
+
