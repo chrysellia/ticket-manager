@@ -11,8 +11,5 @@
             }
         }
     },
-    "entrypoints": [],
-    "paths": [
-        "./controllers"
-    ]
+    "entrypoints": []
 }
