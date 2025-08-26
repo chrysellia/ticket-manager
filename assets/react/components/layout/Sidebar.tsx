@@ -25,7 +25,6 @@ const navItems = [
 export function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { projects, selectedProjectId, setSelectedProjectId } = useProject();
 
   const onLogout = async () => {
     await logout();
@@ -38,20 +37,6 @@ export function Sidebar() {
         <div className="flex h-[60px] items-center border-b px-6">
           <div className="flex items-center gap-3 w-full">
             <h1 className="font-semibold">Ticket Manager</h1>
-            <div className="ml-auto">
-              <label className="sr-only" htmlFor="project-select">Project</label>
-              <select
-                id="project-select"
-                value={selectedProjectId ?? ''}
-                onChange={(e) => setSelectedProjectId(e.target.value ? Number(e.target.value) : null)}
-                className="text-sm border rounded-md px-2 py-1 bg-white dark:bg-gray-900"
-              >
-                {projects.length === 0 && <option value="">No projects</option>}
-                {projects.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
           </div>
         </div>
         <div className="flex-1 overflow-auto py-2">

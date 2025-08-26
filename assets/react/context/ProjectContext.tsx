@@ -25,14 +25,11 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         const list = await ProjectService.getProjects();
         if (!mounted) return;
         setProjects(list);
-        // Restore selection or default to first project
+        // Restore selection or leave null for first-time users
         const stored = window.localStorage.getItem(STORAGE_KEY);
         const parsed = stored ? Number(stored) : NaN;
         if (!Number.isNaN(parsed) && list.some(p => p.id === parsed)) {
           setSelectedProjectIdState(parsed);
-        } else if (list.length > 0) {
-          setSelectedProjectIdState(list[0].id);
-          window.localStorage.setItem(STORAGE_KEY, String(list[0].id));
         }
       } finally {
         if (mounted) setLoading(false);

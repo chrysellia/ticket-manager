@@ -8,7 +8,7 @@ import { TeamsPage } from './react/pages/TeamsPage';
 import { MembersPage } from './react/pages/MembersPage';
 import { LoginPage } from './react/pages/LoginPage';
 import { AuthProvider, useAuth } from './react/context/AuthContext';
-import { ProjectProvider } from './react/context/ProjectContext';
+import { ProjectProvider, useProject } from './react/context/ProjectContext';
 import { ThemeProvider } from './react/providers/theme-provider';
 import { ProjectsPage } from './react/pages/ProjectsPage';
 import '@/styles/app.css';
@@ -26,7 +26,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<MainLayout />}>
-                <Route index element={<Navigate to="tickets" replace />} />
+                <Route index element={<DefaultLanding />} />
                 <Route path="tickets" element={<TicketBoard />} />
                 <Route path="projects" element={<ProjectsPage />} />
                 <Route path="teams" element={<TeamsPage />} />
@@ -67,4 +67,19 @@ function ProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
   return <Outlet />;
+}
+
+function DefaultLanding() {
+  const { selectedProjectId, loading } = useProject();
+  if (loading) {
+    return (
+      <div className="min-h-[50vh] grid place-items-center text-sm text-gray-500">
+        Loading projects...
+      </div>
+    );
+  }
+  if (selectedProjectId == null) {
+    return <Navigate to="/projects" replace />;
+  }
+  return <Navigate to="/tickets" replace />;
 }
