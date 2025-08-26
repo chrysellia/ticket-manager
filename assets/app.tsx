@@ -10,6 +10,7 @@ import { LoginPage } from './react/pages/LoginPage';
 import { AuthProvider, useAuth } from './react/context/AuthContext';
 import { ProjectProvider } from './react/context/ProjectContext';
 import { ThemeProvider } from './react/providers/theme-provider';
+import { ProjectsPage } from './react/pages/ProjectsPage';
 import '@/styles/app.css';
 
 // This is the base path for all frontend routes
@@ -27,6 +28,7 @@ function App() {
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<Navigate to="tickets" replace />} />
                 <Route path="tickets" element={<TicketBoard />} />
+                <Route path="projects" element={<ProjectsPage />} />
                 <Route path="teams" element={<TeamsPage />} />
                 <Route path="members" element={<MembersPage />} />
                 <Route path="settings" element={<SettingsPage />} />

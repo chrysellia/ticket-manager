@@ -7,6 +7,7 @@ interface ProjectContextValue {
   selectedProjectId: number | null;
   setSelectedProjectId: (id: number | null) => void;
   loading: boolean;
+  refreshProjects: () => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextValue | undefined>(undefined);
@@ -40,6 +41,16 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     return () => { mounted = false; };
   }, []);
 
+  const refreshProjects = async () => {
+    const list = await ProjectService.getProjects();
+    setProjects(list);
+    // Ensure selection remains valid
+    if (selectedProjectId != null && !list.some(p => p.id === selectedProjectId)) {
+      const next = list[0]?.id ?? null;
+      setSelectedProjectId(next);
+    }
+  };
+
   const setSelectedProjectId = (id: number | null) => {
     setSelectedProjectIdState(id);
     if (id == null) {
@@ -49,7 +60,10 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const value = useMemo(() => ({ projects, selectedProjectId, setSelectedProjectId, loading }), [projects, selectedProjectId, loading]);
+  const value = useMemo(
+    () => ({ projects, selectedProjectId, setSelectedProjectId, loading, refreshProjects }),
+    [projects, selectedProjectId, loading]
+  );
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 }
