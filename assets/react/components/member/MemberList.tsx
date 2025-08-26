@@ -1,17 +1,7 @@
 import { useState } from 'react';
 import { Member } from '../../types/member';
 import { MemberModal } from './MemberModal';
-
-// Simple button component
-const Button = ({ onClick, children, className = '', ...props }: any) => (
-  <button 
-    onClick={onClick} 
-    className={`px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors ${className}`}
-    {...props}
-  >
-    {children}
-  </button>
-);
+import { Button } from '@/components/ui/button';
 
 interface MemberListProps {
   members: Member[];
@@ -42,27 +32,22 @@ export function MemberList({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">Team Members</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            A list of all team members including their name, email and team.
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <MemberModal onSuccess={onMemberCreated}>
-            <Button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-              Add member
-            </Button>
-          </MemberModal>
-        </div>
+    <>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Members</h1>
+        <p className="text-gray-600 mt-2">A list of all team members including their name, email and team.</p>
+      </div>
+
+      <div className="mb-2">
+        <MemberModal onSuccess={onMemberCreated}>
+          <Button>+ Create Member</Button>
+        </MemberModal>
       </div>
       
-      <div className="mt-8 flex flex-col">
-        <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div className="flex flex-col">
+        <div className="-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5">
               <table className="min-w-full divide-y divide-gray-300">
                 <thead className="bg-gray-50">
                   <tr>
@@ -129,6 +114,6 @@ export function MemberList({
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

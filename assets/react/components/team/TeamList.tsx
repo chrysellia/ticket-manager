@@ -27,15 +27,14 @@ export function TeamList() {
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Teams</h1>
         <TeamModal onSuccess={handleSuccess}>
-          <Button>Create Team</Button>
+          <Button>+ Create Team</Button>
         </TeamModal>
       </div>
       
-      <div className="border rounded-lg">
+      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5">
         <Table>
           <TableHeader>
             <TableRow>

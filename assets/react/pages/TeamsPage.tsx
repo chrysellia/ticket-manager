@@ -3,11 +3,13 @@ import { TeamList } from '../components/team/TeamList';
 
 export function TeamsPage() {
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Teams</h2>
+    <div className="bg-gray-50">
+      <div className="pt-6 px-6 mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Teams</h1>
+        <p className="text-gray-600 mt-2">Manage your teams</p>
       </div>
-      <div className="space-y-4">
+
+      <div className="px-6 pb-6">
         <TeamList />
       </div>
     </div>
