@@ -133,6 +133,7 @@ export function TicketModal({ isOpen, onClose, onSave, ticket }: TicketModalProp
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="backlog">Backlog</SelectItem>
                   <SelectItem value="todo">To Do</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="done">Done</SelectItem>
