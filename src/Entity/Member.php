@@ -13,11 +13,11 @@ class Member
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['member:read'])]
+    #[Groups(['member:read', 'task:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Groups(['member:read', 'member:write'])]
+    #[Groups(['member:read', 'member:write', 'task:read'])]
     private string $name;
 
     #[ORM\Column(type: 'string', length: 255, unique: true)]

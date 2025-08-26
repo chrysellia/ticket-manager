@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Entity\Task;
 use App\Repository\TaskRepository;
 use App\Repository\ProjectRepository;
+use App\Repository\MemberRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,6 +22,7 @@ class TicketApiController extends AbstractController
         private EntityManagerInterface $entityManager,
         private TaskRepository $taskRepository,
         private ProjectRepository $projectRepository,
+        private MemberRepository $memberRepository,
         private SerializerInterface $serializer,
         private ValidatorInterface $validator
     ) {}
@@ -56,8 +58,36 @@ class TicketApiController extends AbstractController
             $task->setProject($project);
         }
 
+        // Handle assignedTo from assignedToId (optional, can clear)
+        if (array_key_exists('assignedToId', $data)) {
+            $assignedToId = $data['assignedToId'];
+            if ($assignedToId === null || $assignedToId === '') {
+                $task->setAssignedTo(null);
+            } else {
+                $member = $this->memberRepository->find((int) $assignedToId);
+                if (!$member) {
+                    return $this->json(['error' => 'Assigned member not found'], Response::HTTP_BAD_REQUEST);
+                }
+                $task->setAssignedTo($member);
+            }
+        }
+
         if (!$task->getStatus()) {
             $task->setStatus(Task::STATUS_TODO);
+        }
+
+        // Handle assignedTo from assignedToId (optional)
+        if (array_key_exists('assignedToId', $data)) {
+            $assignedToId = $data['assignedToId'];
+            if ($assignedToId === null || $assignedToId === '' ) {
+                $task->setAssignedTo(null);
+            } else {
+                $member = $this->memberRepository->find((int) $assignedToId);
+                if (!$member) {
+                    return $this->json(['error' => 'Assigned member not found'], Response::HTTP_BAD_REQUEST);
+                }
+                $task->setAssignedTo($member);
+            }
         }
 
         $errors = $this->validator->validate($task);
@@ -92,6 +122,20 @@ class TicketApiController extends AbstractController
                 return $this->json(['error' => 'Project not found'], Response::HTTP_BAD_REQUEST);
             }
             $task->setProject($project);
+        }
+
+        // Handle assignedTo from assignedToId (optional)
+        if (array_key_exists('assignedToId', $data)) {
+            $assignedToId = $data['assignedToId'];
+            if ($assignedToId === null || $assignedToId === '' ) {
+                $task->setAssignedTo(null);
+            } else {
+                $member = $this->memberRepository->find((int) $assignedToId);
+                if (!$member) {
+                    return $this->json(['error' => 'Assigned member not found'], Response::HTTP_BAD_REQUEST);
+                }
+                $task->setAssignedTo($member);
+            }
         }
 
         $errors = $this->validator->validate($task);

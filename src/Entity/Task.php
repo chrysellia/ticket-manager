@@ -9,6 +9,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 use App\Entity\Team;
 use App\Entity\Project;
+use App\Entity\Member;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -61,6 +62,11 @@ class Task
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['task:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\ManyToOne(targetEntity: Member::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['task:read', 'task:write'])]
+    private ?Member $assignedTo = null;
     
     public function __construct()
     {
@@ -190,6 +196,17 @@ class Task
     public function setProject(?Project $project): static
     {
         $this->project = $project;
+        return $this;
+    }
+
+    public function getAssignedTo(): ?Member
+    {
+        return $this->assignedTo;
+    }
+
+    public function setAssignedTo(?Member $member): static
+    {
+        $this->assignedTo = $member;
         return $this;
     }
 }
