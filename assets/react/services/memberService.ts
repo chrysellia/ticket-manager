@@ -4,7 +4,7 @@ const API_BASE_URL = '/api/members';
 
 export const MemberService = {
   async getMembers(): Promise<Member[]> {
-    const response = await fetch(API_BASE_URL);
+    const response = await fetch(API_BASE_URL, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch members');
     }
@@ -12,7 +12,7 @@ export const MemberService = {
   },
 
   async getMembersByTeam(teamId: number): Promise<Member[]> {
-    const response = await fetch(`${API_BASE_URL}/team/${teamId}`);
+    const response = await fetch(`${API_BASE_URL}/team/${teamId}`, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch team members');
     }
@@ -20,7 +20,7 @@ export const MemberService = {
   },
 
   async getMember(id: number): Promise<Member> {
-    const response = await fetch(`${API_BASE_URL}/${id}`);
+    const response = await fetch(`${API_BASE_URL}/${id}`, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch member');
     }
@@ -33,6 +33,7 @@ export const MemberService = {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(data),
     });
 
@@ -50,6 +51,7 @@ export const MemberService = {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(data),
     });
 
@@ -64,6 +66,7 @@ export const MemberService = {
   async deleteMember(id: number): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
       method: 'DELETE',
+      credentials: 'include',
     });
 
     if (!response.ok) {

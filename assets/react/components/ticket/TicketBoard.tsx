@@ -62,7 +62,7 @@ export function TicketBoard() {
 
   const fetchTickets = async () => {
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, { credentials: 'include' });
       if (!response.ok) {
         throw new Error('Failed to fetch tickets');
       }
@@ -82,6 +82,7 @@ export function TicketBoard() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(newTicket),
       });
 
@@ -103,6 +104,7 @@ export function TicketBoard() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updatedTicket),
       });
 
@@ -123,6 +125,7 @@ export function TicketBoard() {
     try {
       const response = await fetch(`${API_URL}/${ticketId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -167,6 +170,7 @@ export function TicketBoard() {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updatePayload),
       });
 

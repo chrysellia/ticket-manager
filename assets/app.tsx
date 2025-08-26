@@ -1,11 +1,14 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { MainLayout } from './react/components/layout/MainLayout';
 import { TicketBoard } from './react/components/ticket/TicketBoard';
 import { SettingsPage } from './react/pages/SettingsPage';
 import { TeamsPage } from './react/pages/TeamsPage';
 import { MembersPage } from './react/pages/MembersPage';
+import { LoginPage } from './react/pages/LoginPage';
+import { AuthProvider, useAuth } from './react/context/AuthContext';
+import { ThemeProvider } from './react/providers/theme-provider';
 import '@/styles/app.css';
 
 // This is the base path for all frontend routes
@@ -13,19 +16,25 @@ const BASE_PATH = '/';
 
 function App() {
   return (
-    <Router basename={BASE_PATH}>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Navigate to="tickets" replace />} />
-          <Route path="tickets" element={<TicketBoard />} />
-          <Route path="teams" element={<TeamsPage />} />
-          <Route path="members" element={<MembersPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          {/* Add a catch-all route that redirects to the tickets page */}
-          <Route path="*" element={<Navigate to="tickets" replace />} />
-        </Route>
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router basename={BASE_PATH}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<MainLayout />}>
+                <Route index element={<Navigate to="tickets" replace />} />
+                <Route path="tickets" element={<TicketBoard />} />
+                <Route path="teams" element={<TeamsPage />} />
+                <Route path="members" element={<MembersPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="*" element={<Navigate to="tickets" replace />} />
+              </Route>
+            </Route>
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
@@ -38,4 +47,19 @@ if (container) {
       <App />
     </React.StrictMode>
   );
+}
+
+function ProtectedRoute() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen grid place-items-center text-sm text-gray-500">
+        Loading...
+      </div>
+    );
+  }
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  return <Outlet />;
 }

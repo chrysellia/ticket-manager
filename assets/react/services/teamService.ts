@@ -2,7 +2,7 @@ import { Team } from '../components/ticket/types';
 
 export const TeamService = {
   async getTeams(): Promise<Team[]> {
-    const response = await fetch('/api/teams');
+    const response = await fetch('/api/teams', { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch teams');
     }
@@ -10,7 +10,7 @@ export const TeamService = {
   },
 
   async getTeam(id: number): Promise<Team> {
-    const response = await fetch(`/api/teams/${id}`);
+    const response = await fetch(`/api/teams/${id}`, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch team');
     }
@@ -23,6 +23,7 @@ export const TeamService = {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({ name }),
     });
     if (!response.ok) {
@@ -38,6 +39,7 @@ export const TeamService = {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({ name }),
     });
     if (!response.ok) {
@@ -50,6 +52,7 @@ export const TeamService = {
   async deleteTeam(id: number): Promise<void> {
     const response = await fetch(`/api/teams/${id}`, {
       method: 'DELETE',
+      credentials: 'include',
     });
     if (!response.ok) {
       const error = await response.json();
