@@ -60,6 +60,9 @@ export function MemberList({
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Team
                     </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      Skills
+                    </th>
                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                       <span className="sr-only">Actions</span>
                     </th>
@@ -68,7 +71,7 @@ export function MemberList({
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {members.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 text-center">
+                      <td colSpan={5} className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 text-center">
                         No members found
                       </td>
                     </tr>
@@ -81,6 +84,9 @@ export function MemberList({
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{member.email}</td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {member.team?.name || 'No team'}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 max-w-md truncate" title={member.skills || ''}>
+                          {member.skills || '-'}
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                           <div className="flex justify-end space-x-2">

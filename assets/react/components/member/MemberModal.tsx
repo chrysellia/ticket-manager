@@ -151,6 +151,7 @@ type MemberFormData = {
   teamId?: number;
   jobPosition?: string | null;
   jobDescription?: string | null;
+  skills?: string | null;
 };
 
 type MemberModalProps = {
@@ -185,7 +186,8 @@ export function MemberModal({ member, onSuccess, children }: MemberModalProps) {
           email: member.email,
           teamId: member.team?.id,
           jobPosition: member.jobPosition || '',
-          jobDescription: member.jobDescription || ''
+          jobDescription: member.jobDescription || '',
+          skills: member.skills || ''
         });
       } else {
         reset({
@@ -193,7 +195,8 @@ export function MemberModal({ member, onSuccess, children }: MemberModalProps) {
           email: '',
           teamId: undefined,
           jobPosition: '',
-          jobDescription: ''
+          jobDescription: '',
+          skills: ''
         });
       }
     }
@@ -293,6 +296,23 @@ export function MemberModal({ member, onSuccess, children }: MemberModalProps) {
               rows={4}
               {...register('jobDescription')}
               placeholder="Describe the role, responsibilities, or notes..."
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                borderRadius: '0.375rem',
+                border: '1px solid #d1d5db',
+                fontSize: '0.875rem',
+                resize: 'vertical'
+              }}
+            />
+          </FormField>
+
+          <FormField label="Skills (comma-separated)">
+            <textarea
+              id="skills"
+              rows={2}
+              {...register('skills')}
+              placeholder="e.g. react, node, payments, ux"
               style={{
                 width: '100%',
                 padding: '0.5rem',

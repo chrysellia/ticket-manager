@@ -4,6 +4,7 @@ export interface Member {
   email: string;
   jobPosition?: string | null;
   jobDescription?: string | null;
+  skills?: string | null;
   team?: {
     id: number;
     name: string;
@@ -15,6 +16,7 @@ export interface CreateMemberDto {
   email: string;
   jobPosition?: string | null;
   jobDescription?: string | null;
+  skills?: string | null;
   teamId?: number;
   projectId: number;
 }

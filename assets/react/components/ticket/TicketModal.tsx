@@ -31,6 +31,8 @@ export function TicketModal({ isOpen, onClose, onSave, ticket }: TicketModalProp
   const { selectedProjectId } = useProject();
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [suggestedMember, setSuggestedMember] = useState<Member | null>(null);
+  const [isSuggesting, setIsSuggesting] = useState(false);
   const [formData, setFormData] = useState<Omit<Ticket, 'id' | 'createdAt'>>({
     title: '',
     description: '',
@@ -73,6 +75,43 @@ export function TicketModal({ isOpen, onClose, onSave, ticket }: TicketModalProp
     };
     loadMembers();
   }, [isOpen, selectedProjectId]);
+
+  // Debounced suggestion fetch on title/description changes
+  useEffect(() => {
+    if (!isOpen) return;
+    const t = setTimeout(async () => {
+      const title = formData.title?.trim() || '';
+      const description = formData.description?.trim() || '';
+      if (!title && !description) {
+        setSuggestedMember(null);
+        return;
+      }
+      try {
+        setIsSuggesting(true);
+        const res = await fetch('/api/tickets/suggest-assignee', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ title, description, projectId: selectedProjectId ?? undefined })
+        });
+        if (!res.ok) throw new Error('Failed to get suggestion');
+        const data = await res.json();
+        if (data?.member?.id) {
+          // Construct minimal Member object; email unknown here
+          const m = members.find(mm => mm.id === data.member.id) || { id: data.member.id, name: data.member.name, email: '' } as Member;
+          setSuggestedMember(m);
+        } else {
+          setSuggestedMember(null);
+        }
+      } catch (e) {
+        // Silent fail for UX
+        setSuggestedMember(null);
+      } finally {
+        setIsSuggesting(false);
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [formData.title, formData.description, isOpen, selectedProjectId, members]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,6 +230,22 @@ export function TicketModal({ isOpen, onClose, onSave, ticket }: TicketModalProp
                 </SelectContent>
               </Select>
             </div>
+            {(suggestedMember && (!formData.assignedTo || formData.assignedTo.id !== suggestedMember.id)) && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div></div>
+                <div className="col-span-3 flex items-center gap-2 text-xs">
+                  <span className="text-gray-500">Suggested:</span>
+                  <button
+                    type="button"
+                    className="px-2 py-1 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100"
+                    onClick={() => setFormData(prev => ({ ...prev, assignedTo: suggestedMember }))}
+                    title="Apply suggested assignee"
+                  >
+                    {isSuggesting ? 'Suggesting...' : suggestedMember.name}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
