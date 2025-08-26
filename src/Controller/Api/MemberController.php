@@ -61,7 +61,7 @@ class MemberController extends AbstractController
             $members,
             Response::HTTP_OK,
             [],
-            ['groups' => ['member:read']]
+            ['groups' => ['member:read', 'team:read']]
         );
     }
 

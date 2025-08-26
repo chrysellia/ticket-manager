@@ -16,12 +16,12 @@ class Team
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['team:read', 'task:read'])]
+    #[Groups(['team:read', 'task:read', 'member:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
-    #[Groups(['team:read', 'team:write', 'task:read'])]
+    #[Groups(['team:read', 'team:write', 'task:read', 'member:read'])]
     private string $name;
 
     #[ORM\OneToMany(mappedBy: 'team', targetEntity: Task::class)]
