@@ -417,13 +417,13 @@ export function TicketBoard() {
   };
 
   return (
-    <div className="bg-gray-50">
-      <div className="p-6 mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Ticket Board</h1>
-        <p className="text-gray-600 mt-2">Manage your tasks and track progress</p>
+    <div className="bg-gradient-to-b from-gray-50 to-white min-h-[calc(100vh-4rem)]">
+      <div className="px-4 sm:px-6 lg:px-8 py-6 mx-auto max-w-7xl">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Ticket Board</h1>
+        <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage your tasks and track progress</p>
       </div>
 
-      <div className="px-6 pb-6">
+      <div className="px-4 sm:px-6 lg:px-8 pb-6 mx-auto max-w-7xl">
         <DndContext 
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -432,7 +432,7 @@ export function TicketBoard() {
           onDragEnd={onDragEnd}
           modifiers={[restrictToWindowEdges]}
         >
-          <div className="flex gap-6 overflow-x-auto pb-2">
+          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 overflow-x-auto md:overflow-visible pb-2 snap-x snap-mandatory">
             {(['backlog', 'todo', 'in_progress', 'done'] as Status[]).map((status) => (
               <BoardColumn
                 key={status}

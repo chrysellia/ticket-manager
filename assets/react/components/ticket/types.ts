@@ -14,6 +14,7 @@ export interface Ticket {
   priority: Priority;
   createdAt: string;
   updatedAt?: string;
+  dueDate?: string | null;
   team?: Team;
   assignedTo?: Member | null;
 }

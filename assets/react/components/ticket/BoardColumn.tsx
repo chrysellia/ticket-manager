@@ -132,26 +132,26 @@ export function BoardColumn({
   };
 
   return (
-    <div className="w-80 flex-shrink-0">
+    <div className="w-[85vw] sm:w-80 md:w-auto md:min-w-0 flex-shrink-0 md:flex-shrink snap-start">
       <Card 
-        className={`flex flex-col ${statusColors[status]} h-full transition-all duration-200 ${
-          isOver ? 'ring-2 ring-blue-400 ring-opacity-50 scale-[1.02]' : ''
+        className={`flex flex-col ${statusColors[status]} h-full transition-all duration-200 rounded-2xl border border-gray-200/60 shadow-sm ${
+          isOver ? 'ring-2 ring-blue-400/50 scale-[1.01]' : ''
         }`}
       >
-        <CardHeader className="p-3 pb-2 relative">
+        <CardHeader className="p-3 pb-2 sticky top-0 z-10 bg-white/60 backdrop-blur supports-[backdrop-filter]:bg-white/50 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <CardTitle className="text-lg font-semibold">
                 {statusTitles[status]}
               </CardTitle>
-              <span className="text-sm text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+              <span className="text-xs text-gray-600 bg-gray-200/80 px-2 py-0.5 rounded-full">
                 {tickets.length}
               </span>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="cursor-pointer h-7 w-7 text-gray-500 hover:bg-gray-200/50 hover:text-gray-700 transition-colors duration-150"
+              className="cursor-pointer h-7 w-7 text-gray-500 hover:bg-gray-200/60 hover:text-gray-700 transition-colors duration-150"
               onClick={handleAddClick}
               title="Add a card"
             >
@@ -162,10 +162,10 @@ export function BoardColumn({
         
         <div 
           ref={setNodeRef}
-          className={`p-2 space-y-2 overflow-y-auto flex-1 transition-all duration-200 ${
+          className={`p-2 sm:p-3 space-y-2 overflow-y-auto flex-1 transition-all duration-200 rounded-b-2xl ${
             isOver ? 'bg-blue-50/50' : ''
-          }`} 
-          style={{ minHeight: '200px' }}
+          }`}
+          style={{ minHeight: '200px', maxHeight: '75vh' }}
         >
           <SortableContext items={ticketIds} strategy={verticalListSortingStrategy}>
             {tickets.map((ticket) => (
