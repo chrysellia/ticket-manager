@@ -57,4 +57,18 @@ class MemberRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return Member[] Returns members for a specific project ordered by name
+     */
+    public function findByProject(int $projectId): array
+    {
+        return $this->createQueryBuilder('m')
+            ->andWhere('m.project = :pid')
+            ->setParameter('pid', $projectId)
+            ->orderBy('m.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
+

@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Team;
 use App\Repository\TeamRepository;
+use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +19,7 @@ class TeamController extends AbstractController
 {
     public function __construct(
         private TeamRepository $teamRepository,
+        private ProjectRepository $projectRepository,
         private EntityManagerInterface $entityManager,
         private SerializerInterface $serializer,
         private ValidatorInterface $validator
@@ -60,6 +62,16 @@ class TeamController extends AbstractController
         
         if (isset($data['name'])) {
             $team->setName($data['name']);
+        }
+        if (isset($data['projectId'])) {
+            $project = $this->projectRepository->find((int)$data['projectId']);
+            if (!$project) {
+                return $this->json(
+                    ['error' => 'Project not found'], 
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+            $team->setProject($project);
         }
         
         $errors = $this->validator->validate($team);
@@ -113,9 +125,14 @@ class TeamController extends AbstractController
     }
 
     #[Route('', name: 'api_teams_list', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $teams = $this->teamRepository->findAllOrderedByName();
+        $projectId = $request->query->getInt('projectId', 0);
+        if ($projectId > 0) {
+            $teams = $this->teamRepository->findByProject($projectId);
+        } else {
+            $teams = $this->teamRepository->findAllOrderedByName();
+        }
         return $this->json(
             $teams,
             Response::HTTP_OK,
@@ -127,7 +144,20 @@ class TeamController extends AbstractController
     #[Route('', name: 'api_teams_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $team = $this->serializer->deserialize($request->getContent(), Team::class, 'json');
+        $data = json_decode($request->getContent(), true);
+        $team = new Team();
+        if (!isset($data['name'])) {
+            return $this->json(['error' => 'name is required'], Response::HTTP_BAD_REQUEST);
+        }
+        $team->setName($data['name']);
+        if (!isset($data['projectId'])) {
+            return $this->json(['error' => 'projectId is required'], Response::HTTP_BAD_REQUEST);
+        }
+        $project = $this->projectRepository->find((int)$data['projectId']);
+        if (!$project) {
+            return $this->json(['error' => 'Project not found'], Response::HTTP_BAD_REQUEST);
+        }
+        $team->setProject($project);
         
         $errors = $this->validator->validate($team);
         if (count($errors) > 0) {

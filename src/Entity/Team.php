@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Entity\Project;
 
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
 class Team
@@ -29,6 +30,11 @@ class Team
     #[ORM\OneToMany(mappedBy: 'team', targetEntity: Member::class, orphanRemoval: true)]
     #[Groups(['team:read'])]
     private Collection $members;
+
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'teams')]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['team:read', 'team:write'])]
+    private ?Project $project = null;
 
     public function __construct()
     {
@@ -115,5 +121,16 @@ class Team
     public function __toString(): string
     {
         return $this->name;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
+        return $this;
     }
 }

@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 use App\Entity\Team;
+use App\Entity\Project;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -51,6 +52,11 @@ class Task
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['task:read', 'task:write'])]
     private ?Team $team = null;
+
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'tasks')]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['task:read', 'task:write'])]
+    private ?Project $project = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['task:read'])]
@@ -163,5 +169,27 @@ class Task
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    public function getTeam(): ?Team
+    {
+        return $this->team;
+    }
+
+    public function setTeam(?Team $team): static
+    {
+        $this->team = $team;
+        return $this;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): static
+    {
+        $this->project = $project;
+        return $this;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\MemberRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use App\Entity\Project;
 
 #[ORM\Entity(repositoryClass: MemberRepository::class)]
 class Member
@@ -35,6 +36,11 @@ class Member
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['member:read', 'member:write'])]
     private ?string $jobDescription = null;
+
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'members')]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['member:read', 'member:write'])]
+    private ?Project $project = null;
 
     public function getId(): ?int
     {
@@ -95,5 +101,17 @@ class Member
         $this->jobDescription = $jobDescription;
         return $this;
     }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
+        return $this;
+    }
 }
+
 

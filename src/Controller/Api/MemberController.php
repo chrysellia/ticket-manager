@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Entity\Member;
 use App\Repository\MemberRepository;
 use App\Repository\TeamRepository;
+use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,6 +21,7 @@ class MemberController extends AbstractController
     public function __construct(
         private MemberRepository $memberRepository,
         private TeamRepository $teamRepository,
+        private ProjectRepository $projectRepository,
         private EntityManagerInterface $entityManager,
         private SerializerInterface $serializer,
         private ValidatorInterface $validator
@@ -27,9 +29,14 @@ class MemberController extends AbstractController
     }
 
     #[Route('', name: 'api_members_list', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $members = $this->memberRepository->findAllOrderedByName();
+        $projectId = $request->query->getInt('projectId', 0);
+        if ($projectId > 0) {
+            $members = $this->memberRepository->findByProject($projectId);
+        } else {
+            $members = $this->memberRepository->findAllOrderedByName();
+        }
         return $this->json(
             $members,
             Response::HTTP_OK,
@@ -91,6 +98,20 @@ class MemberController extends AbstractController
         if (isset($data['jobDescription'])) {
             $member->setJobDescription($data['jobDescription']);
         }
+        if (!isset($data['projectId'])) {
+            return $this->json(
+                ['error' => 'projectId is required'],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+        $project = $this->projectRepository->find((int)$data['projectId']);
+        if (!$project) {
+            return $this->json(
+                ['error' => 'Project not found'],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+        $member->setProject($project);
         
         if (isset($data['teamId'])) {
             $team = $this->teamRepository->find($data['teamId']);
@@ -150,6 +171,16 @@ class MemberController extends AbstractController
         }
         if (isset($data['jobDescription'])) {
             $member->setJobDescription($data['jobDescription']);
+        }
+        if (isset($data['projectId'])) {
+            $project = $this->projectRepository->find((int)$data['projectId']);
+            if (!$project) {
+                return $this->json(
+                    ['error' => 'Project not found'],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+            $member->setProject($project);
         }
         if (isset($data['teamId'])) {
             $team = $this->teamRepository->find($data['teamId']);

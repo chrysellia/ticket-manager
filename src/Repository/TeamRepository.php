@@ -41,4 +41,15 @@ class TeamRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByProject(int $projectId): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.project = :pid')
+            ->setParameter('pid', $projectId)
+            ->orderBy('t.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
+
