@@ -48,9 +48,8 @@ COPY --from=composer_deps /app/vendor ./vendor
 COPY --from=assets_builder /app/public/build ./public/build
 
 # Set correct permissions for cache/logs (production)
-RUN chown -R www-data:www-data var \
-    && mkdir -p var/cache var/log \
-    && chown -R www-data:www-data var/cache var/log
+RUN mkdir -p var/cache var/log \
+    && chown -R www-data:www-data var
 
 # Production env vars (can be overridden by Render)
 ENV APP_ENV=prod \
